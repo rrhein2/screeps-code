@@ -2,13 +2,14 @@ var roleHarvester = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-    	if(creep.memory.working && creep.carry.energy == 0)
+        //console.log(!creep.memory.working + " and " + (creep.store.energy == creep.store.getCapacity()));
+    	if(creep.memory.working && creep.store.energy == 0)
     	{
-    		creep.memory.working == false;
+    		creep.memory.working = false;
     	}
-    	else if(!creep.memory.working && creep.carry.energy == creep.carry.energyCapacity)
+    	else if(!creep.memory.working && creep.store.energy == creep.store.getCapacity())
     	{
-    		creep.memory.working == true;
+    		creep.memory.working = true;
     	}
 
 
