@@ -2,6 +2,65 @@ var roleHarvester = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
+    	if(creep.memory.working && creep.carry.energy == 0)
+    	{
+    		creep.memory.working == false;
+    	}
+    	else if(!creep.memory.working && creep.carry.energy == creep.carry.energyCapacity)
+    	{
+    		creep.memory.working == true;
+    	}
+
+
+    	if(creep.memory.working)
+    	{
+    		if(creep.room.energyAvailable == creep.room.energyCapacityAvailable)
+    		{
+    			if(creep.rom.find(FIND_CONSTRUCTION_SITES).length > 0)
+    			{
+    				creep.runOtherRole('builder');
+    			}
+    			else
+    			{
+    				creep.runOtherRole('upgrader');
+    			}
+    		}
+    		else
+    		{
+    			var targets = creep.room.find(FIND_STRUCTURES, {
+                	filter: (structure) => {
+                    	return (structure.structureType == STRUCTURE_EXTENSION ||
+                        	structure.structureType == STRUCTURE_SPAWN ||
+                        	structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
+                	}
+            	});
+            	if(targets.length > 0) {
+                	if(creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    	creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
+                	}
+             	}
+    		}
+    	}
+    	else
+    	{
+			var sources = creep.pos.findClosestByRange(FIND_SOURCES);
+            if(creep.harvest(sources) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(sources, {visualizePathStyle: {stroke: '#ffaa00'}});
+            }
+    	}
+    }
+}
+
+
+
+
+
+
+
+
+
+
+/*
         if(creep.carry.energy < creep.carryCapacity && !creep.memory.full) {
             var sources = creep.pos.findClosestByRange(FIND_SOURCES);
             //console.log(sources);
@@ -40,6 +99,12 @@ var roleHarvester = {
                         creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
                     }
                 }
+                else
+                {
+                    if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
+                    }
+                }
                 if(creep.carry.energy == 0)
                 {
                     creep.memory.full = false;
@@ -48,5 +113,6 @@ var roleHarvester = {
         }
     }
 };
+*/
 
 module.exports = roleHarvester;
