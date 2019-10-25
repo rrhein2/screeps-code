@@ -42,16 +42,16 @@ module.exports.loop = function () {
         }
     }
     
-    if(harvs < 2)
+    if(harvs < 4)
     {
-        Game.spawns['Spawn1'].spawnCreep([MOVE, WORK, CARRY], Game.time, {memory:{role:'harvester'}})
+        Game.spawns['Spawn1'].spawnCreep([MOVE, WORK, CARRY], "harv"+Game.time, {memory:{role:'harvester'}})
     }
-    if(upgrs < 2)
+    if(upgrs < 4)
     {
-        Game.spawns['Spawn1'].spawnCreep([MOVE, MOVE, WORK, WORK, CARRY, CARRY], Game.time, {memory:{role:'upgrader'}})
+        Game.spawns['Spawn1'].spawnCreep([MOVE, MOVE, WORK, WORK, CARRY, CARRY], "upgr"+Game.time, {memory:{role:'upgrader'}})
     }
-    if(buildrs<1)
+    if(buildrs<2)
     {
-        Game.spawns['Spawn1'].spawnCreep([MOVE, WORK, CARRY], Game.time, {memory:{role:'builder'}})
+        Game.spawns['Spawn1'].spawnCreep([MOVE, WORK, CARRY], "buil"+Game.time, {memory:{role:'builder'}})
     }
 }
