@@ -5,6 +5,7 @@
 require('prototype.creep');
 require('prototype.tower');
 require('prototype.source');
+require('Traveler')
 
 module.exports.loop = function () {
     
