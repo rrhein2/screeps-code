@@ -1,7 +1,6 @@
-role = stationedHarvester = {
-	run:  function(creep)
+var stationedHarvester = {
+	run: function(creep)
 	{
-
 		// Every 50 ticks, check if the ttl is < 50, if it is then queue a new spawn
 		if(Game.time%50 == 0)
 		{
@@ -22,7 +21,7 @@ role = stationedHarvester = {
 				}
 			});
 
-			if(var.length != 0)
+			if(sources.length != 0)
 			{
 				creep.memory.harvX = sources[0].pos.x;
 				creep.memory.harvY = sources[0].pos.y;
@@ -50,7 +49,7 @@ role = stationedHarvester = {
 		{
 			// This could probably be made more effecient
 			var container = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
-				filter(structure) =>
+				filter: (structure) =>
 				{
 					return (structure.structureType == STRUCTURE_CONTAINER);
 				}
@@ -62,7 +61,7 @@ role = stationedHarvester = {
 		}
 		else
 		{
-			if(creep.harvest.(creep.room.lookAt(creep.memory.harvX, creep.memory.harvY)[0]) == ERR_NOT_IN_RANGE)
+			if(creep.harvest.creep.room.lookAt(creep.memory.harvX, creep.memory.harvY)[0] == ERR_NOT_IN_RANGE)
 			{
 				creep.travelTo(creep.room.getPositionAt(creep.memory.harvX, creep.memory.harvY));
 			}
@@ -71,4 +70,4 @@ role = stationedHarvester = {
 	}
 }
 
-module.exports stationedHarvester;
+module.exports = stationedHarvester;
