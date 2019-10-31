@@ -1,7 +1,7 @@
 var roles = 
 {
 	harvester: require('role.harvester'),
-	//stationedHarvester: require('role.stationedHarvester'),
+	stHarv: require('role.stationedHarvester'),
 	//ferry: require('role.ferry'),
 	builder: require('role.builder'),
 	upgrader: require('role.builder')
@@ -18,7 +18,7 @@ Creep.prototype.runRole =
 			} 
 			catch(error)
 			{
-				console.log('Creep: ' + this.name + ' (room: ' + this.room.name + ') throwing role error ' + error);
+				//console.log('Creep: ' + this.name + ' (room: ' + this.room.name + ') throwing role error ' + error);
 			}
 		}
 	};
