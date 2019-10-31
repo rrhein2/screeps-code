@@ -10,30 +10,43 @@ var stationedHarvester = {
 			}
 		}
 
-		// If the stationedHarvester does not have preset coordinates to go to,
+		// If the stationedHarvester does not have a source to go to,
 		// find some
-		if(creep.memory.harvX != -1 && creep.memory.harvY != -1)
+		if(creep.memory.srcID == -1 || creep.memory.srcID == undefined)
 		{
-			var sources = creep.room.find(FIND_SOURCES, {
-				filter: (source) =>
+			var sources = creep.room.find(FIND_SOURCES);
+			var creeps = creep.room.find(FIND_MY_CREEPS, {
+				filter: (cp) =>
 				{
-					return (source.memory.hasHarvester == false);
+					return (cp.memory.role == "stHarv");
 				}
 			});
-
-			if(sources.length != 0)
+			var used = false;
+			console.log(sources.length);
+			for(var i = 0; i < sources.length; i++)
 			{
-				creep.memory.harvX = sources[0].pos.x;
-				creep.memory.harvY = sources[0].pos.y;
-				sources[0].memory.hasharvester = true;
-			}
-			else
-			{
-				// TODO
-				// code to find a source that has a container but no harvester
-				// and go to the harvester
+				for(var j = 0; j < creeps.length; j++)
+				{
+					// Check every statHarv to see if they are using this source
+					if(creeps[j].memory.srcID == sources[i].id)
+					{
+						used = true;
+						break;
+					}
+				}
+				// If no statHarv is using the source, then assign this statHarv the source ID
+				if(!used)
+				{
+					creep.memory.srcID = sources[i].id;
+					break
+				}
 			}
 		}
+
+		// Create shortcut for source object
+		var source = Game.getObjectById(creep.memory.srcID);
+		
+
 
 		if(creep.memory.working && creep.store.energy == 0)
     	{
@@ -47,23 +60,40 @@ var stationedHarvester = {
 		// Else it has the coordinates and can start moving there
 		if(creep.memory.working)
 		{
-			// This could probably be made more effecient
-			var container = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
-				filter: (structure) =>
+			// Get containers within 1 of the source
+			var containers = source.pos.findInRange(FIND_STRUCTURES, 1, {
+				filter: (container) =>
 				{
-					return (structure.structureType == STRUCTURE_CONTAINER);
+					return (container.structureType == STRUCTURE_CONTAINER);
 				}
 			});
-			if(creep.transfer(container, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) 
+			// If no container exists within 1 of source, create one where you are
+			if(containers.length <= 0)
 			{
-                creep.moveTo(container, {visualizePathStyle: {stroke: '#ffffff'}});
-            }
+				// TODO
+				// Need to find a way to move it one away so that it can build its own container
+				creep.room.createConstructionSite(creep.pos, STRUCTURE_CONTAINER);
+				var cs = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 1);
+				creep.build(cs);
+			}
+			// Else, put energy into container
+			else
+			{
+				if(containers[0].hits < containers[0].hitsMax)
+				{
+					console.log(creep.repair(containers[0]));
+				}
+				else
+				{
+					creep.transfer(containers[0], RESOURCE_ENERGY);
+				}
+			}
 		}
 		else
 		{
-			if(creep.harvest.creep.room.lookAt(creep.memory.harvX, creep.memory.harvY)[0] == ERR_NOT_IN_RANGE)
+			if(creep.harvest(source) == ERR_NOT_IN_RANGE)
 			{
-				creep.travelTo(creep.room.getPositionAt(creep.memory.harvX, creep.memory.harvY));
+				creep.travelTo(source);
 			}
 		}
 
