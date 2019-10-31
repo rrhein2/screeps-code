@@ -17,7 +17,7 @@ var roleHarvester = {
     	{
     		if(creep.room.energyAvailable == creep.room.energyCapacityAvailable)
     		{
-    			if(creep.rom.find(FIND_CONSTRUCTION_SITES).length > 0)
+    			if(creep.room.find(FIND_CONSTRUCTION_SITES).length > 0)
     			{
     				creep.runOtherRole('builder');
     			}
