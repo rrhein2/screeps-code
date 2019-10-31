@@ -18,7 +18,7 @@ Creep.prototype.runRole =
 			} 
 			catch(error)
 			{
-				//console.log('Creep: ' + this.name + ' (room: ' + this.room.name + ') throwing role error ' + error);
+				console.log('Creep: ' + this.name + ' (room: ' + this.room.name + ') throwing role error ' + error);
 			}
 		}
 	};
