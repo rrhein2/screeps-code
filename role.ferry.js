@@ -75,7 +75,8 @@ var ferry = {
                 	filter: (structure) => {
                     	return (structure.structureType == STRUCTURE_EXTENSION ||
                         	structure.structureType == STRUCTURE_SPAWN ||
-                        	structure.structureType == STRUCTURE_TOWER) && structure.store[RESOURCE_ENERGY] < structure.store.getCapacity(RESOURCE_ENERGY);
+                        	structure.structureType == STRUCTURE_TOWER ||
+                        	structure.structureType  == STRUCTURE_STORAGE) && structure.store[RESOURCE_ENERGY] < structure.store.getCapacity(RESOURCE_ENERGY);
                 }
             });
         	if(targets.length > 0) {
