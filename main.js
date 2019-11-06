@@ -61,7 +61,7 @@ module.exports.loop = function () {
         creep.runRole();
     }
     
-    if(harvs < 4)
+    if(harvs < 1)
     {
         Game.spawns['Spawn1'].spawnCreep([MOVE, WORK, CARRY], "harv"+Game.time, {memory:{role:'harvester'}})
     }
@@ -72,5 +72,26 @@ module.exports.loop = function () {
     if(buildrs<2)
     {
         Game.spawns['Spawn1'].spawnCreep([MOVE, WORK, CARRY], "buil"+Game.time, {memory:{role:'builder'}})
+    }
+    if(Game.spawns['Spawn1'].room.memory.spawnQueue.length > 1)
+    {
+        var queue = Game.spawns['Spawn1'].room.memory.spawnQueue;
+        var next = queue.substring(0, queue.indexOf(','));
+        if(next.substring(0, 2) == "SH")
+        {
+            if(Game.spawns['Spawn1'].spawnCreep([MOVE, WORK, WORK, WORK, WORK, WORK, CARRY], "stHarv"+Game.time, {memory:{role:'stHarv', srcID:next.substring(2)}}) == 0)
+            {
+                // if it was spawned, remove from queue
+                Game.spawns['Spawn1'].room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
+            }
+        }
+        else if(next.substring(0, 2) == 'FE')
+        {
+            if(Game.spawns['Spawn1'].spawnCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], "ferry"+Game.time, {memory:{role:'ferry', contID:next.substring(2)}}) == 0)
+            {
+                // if it was spawned, remove from queue
+                Game.spawns['Spawn1'].room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
+            }
+        }
     }
 }
