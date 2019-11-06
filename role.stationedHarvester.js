@@ -6,7 +6,7 @@ var stationedHarvester = {
 		{
 			if(creep.ticksToLive <= 50)
 			{
-				creep.room.memory.spawnQueue += ("SH"+creep.memory.harvX+creep.memory.harvY+",");
+				creep.room.memory.spawnQueue += ("SH"+creep.memory.srcID+",");
 			}
 		}
 
@@ -22,7 +22,6 @@ var stationedHarvester = {
 				}
 			});
 			var used = false;
-			console.log(sources.length);
 			for(var i = 0; i < sources.length; i++)
 			{
 				for(var j = 0; j < creeps.length; j++)
@@ -81,7 +80,7 @@ var stationedHarvester = {
 			{
 				if(containers[0].hits < containers[0].hitsMax)
 				{
-					console.log(creep.repair(containers[0]));
+					creep.repair(containers[0]);
 				}
 				else
 				{
