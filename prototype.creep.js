@@ -2,7 +2,7 @@ var roles =
 {
 	harvester: require('role.harvester'),
 	stHarv: require('role.stationedHarvester'),
-	//ferry: require('role.ferry'),
+	ferry: require('role.ferry'),
 	builder: require('role.builder'),
 	upgrader: require('role.builder')
 }
