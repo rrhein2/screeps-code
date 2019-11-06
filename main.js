@@ -65,14 +65,6 @@ module.exports.loop = function () {
     {
         Game.spawns['Spawn1'].spawnCreep([MOVE, WORK, CARRY], "harv"+Game.time, {memory:{role:'harvester'}})
     }
-    if(upgrs < 4)
-    {
-        Game.spawns['Spawn1'].spawnCreep([MOVE, MOVE, WORK, WORK, CARRY, CARRY], "upgr"+Game.time, {memory:{role:'upgrader'}})
-    }
-    if(buildrs<2)
-    {
-        Game.spawns['Spawn1'].spawnCreep([MOVE, WORK, CARRY], "buil"+Game.time, {memory:{role:'builder'}})
-    }
     if(Game.spawns['Spawn1'].room.memory.spawnQueue.length > 1)
     {
         var queue = Game.spawns['Spawn1'].room.memory.spawnQueue;
@@ -93,5 +85,13 @@ module.exports.loop = function () {
                 Game.spawns['Spawn1'].room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
             }
         }
+    }
+    if(upgrs < 4)
+    {
+        Game.spawns['Spawn1'].spawnCreep([MOVE, MOVE, WORK, WORK, CARRY, CARRY], "upgr"+Game.time, {memory:{role:'upgrader'}})
+    }
+    if(buildrs<2)
+    {
+        Game.spawns['Spawn1'].spawnCreep([MOVE, WORK, CARRY], "buil"+Game.time, {memory:{role:'builder'}})
     }
 }
