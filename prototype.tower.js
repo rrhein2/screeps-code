@@ -11,12 +11,12 @@ StructureTower.prototype.runRole =
                 this.heal(closestHurt);
             }
 
-            let closestDamagedStructure = this.pos.findClosestByRange(FIND_STRUCTURES, {
-                filter: (structure) => structure.hits < structure.hitsMax && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART
-                // filter: (structure) => structure.hits < structure.hitsMax// && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART
-            });
-            if(closestDamagedStructure != undefined) {
-                this.repair(closestDamagedStructure);
-            }
+            // let closestDamagedStructure = this.pos.findClosestByRange(FIND_STRUCTURES, {
+            //     filter: (structure) => structure.hits < structure.hitsMax && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART
+            //     // filter: (structure) => structure.hits < structure.hitsMax// && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART
+            // });
+            // if(closestDamagedStructure != undefined) {
+            //     this.repair(closestDamagedStructure);
+            // }
         }
     };
