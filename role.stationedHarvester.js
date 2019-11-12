@@ -4,7 +4,7 @@ var stationedHarvester = {
 		// Every 50 ticks, check if the ttl is < 50, if it is then queue a new spawn
 		if(Game.time%50 == 0)
 		{
-			if(creep.ticksToLive <= 70)
+			if(creep.ticksToLive <= 50)
 			{
 				creep.room.memory.spawnQueue += ("SH"+creep.memory.srcID+",");
 			}

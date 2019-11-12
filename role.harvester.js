@@ -2,6 +2,15 @@ var roleHarvester = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
+
+    	if(Game.time%30 == 0)
+		{
+			if(creep.ticksToLive <= 30)
+			{
+				creep.room.memory.spawnQueue += ("H0,");
+			}
+		}
+
         //console.log(!creep.memory.working + " and " + (creep.store.energy == creep.store.getCapacity()));
     	if(creep.memory.working && creep.store.energy == 0)
     	{

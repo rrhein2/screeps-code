@@ -3,6 +3,14 @@ var roleUpgrader = {
     /** @param {Creep} creep **/
     run: function(creep) {
 
+    	if(Game.time%30 == 0)
+		{
+			if(creep.ticksToLive <= 30)
+			{
+				creep.room.memory.spawnQueue += ("U0,");
+			}
+		}
+
         if(creep.memory.upgrading && creep.carry.energy == 0) {
             creep.memory.upgrading = false;
             creep.say('🔄 harvest');
