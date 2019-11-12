@@ -2,6 +2,15 @@ var roleBuilder = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
+
+    	if(Game.time%50 == 0)
+		{
+			if(creep.ticksToLive <= 70)
+			{
+				creep.room.memory.spawnQueue += ("B0,");
+			}
+		}
+
         if((creep.memory.building && creep.carry.energy == 0) || creep.memory.building == undefined) {
             creep.memory.building = false;
             creep.say('🔄 harvest');
