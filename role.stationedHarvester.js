@@ -4,7 +4,7 @@ var stationedHarvester = {
 		// Every 50 ticks, check if the ttl is < 50, if it is then queue a new spawn
 		if(Game.time%50 == 0)
 		{
-			if(creep.ticksToLive <= 50)
+			if(creep.ticksToLive < 50)
 			{
 				creep.room.memory.spawnQueue += ("SH"+creep.memory.srcID+",");
 			}
@@ -71,9 +71,12 @@ var stationedHarvester = {
 			{
 				// TODO
 				// Need to find a way to move it one away so that it can build its own container
-				creep.room.createConstructionSite(creep.pos, STRUCTURE_CONTAINER);
 				var cs = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 1);
-				creep.build(cs);
+				if(cs.length == 0)
+				{
+					creep.room.createConstructionSite(creep.pos, STRUCTURE_CONTAINER);
+				};
+				creep.build(cs[0]);
 			}
 			// Else, put energy into container
 			else

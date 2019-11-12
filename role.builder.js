@@ -5,9 +5,9 @@ var roleBuilder = {
 
     	if(Game.time%50 == 0)
 		{
-			if(creep.ticksToLive <= 70)
+			if(creep.ticksToLive < 50)
 			{
-				creep.room.memory.spawnQueue += ("B0,");
+				Game.rooms[creep.memory.home].memory.spawnQueue += ("B0,");
 			}
 		}
 

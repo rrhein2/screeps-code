@@ -5,7 +5,7 @@ var roleHarvester = {
 
     	if(Game.time%30 == 0)
 		{
-			if(creep.ticksToLive <= 30)
+			if(creep.ticksToLive < 30)
 			{
 				creep.room.memory.spawnQueue += ("H0,");
 			}

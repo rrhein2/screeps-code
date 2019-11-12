@@ -5,7 +5,7 @@ var ferry = {
 		// If it will, then add it to the spawnQueue
 		if(Game.time%50 == 0)
 		{
-			if(creep.ticksToLive <= 50)
+			if(creep.ticksToLive < 50)
 			{
 				creep.room.memory.spawnQueue += ("FE"+creep.memory.contID+",");
 			}
