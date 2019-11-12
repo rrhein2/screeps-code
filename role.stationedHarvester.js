@@ -4,7 +4,7 @@ var stationedHarvester = {
 		// Every 50 ticks, check if the ttl is < 50, if it is then queue a new spawn
 		if(Game.time%50 == 0)
 		{
-			if(creep.ticksToLive <= 50)
+			if(creep.ticksToLive <= 70)
 			{
 				creep.room.memory.spawnQueue += ("SH"+creep.memory.srcID+",");
 			}
@@ -84,7 +84,19 @@ var stationedHarvester = {
 				}
 				else
 				{
-					creep.transfer(containers[0], RESOURCE_ENERGY);
+					if(creep.pos.x == containers[0].pos.x && creep.pos.y == containers[0].pos.y)
+					{
+						creep.transfer(containers[0], RESOURCE_ENERGY);
+					}
+					else
+					{
+
+						creep.travelTo(containers[0]);
+					}
+					// if(creep.transfer(containers[0], RESOURCE_ENERGY) != 0)
+					// {
+					// 	creep.travelTo(containers[0]);
+					// }
 				}
 			}
 		}
