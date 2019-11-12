@@ -5,7 +5,7 @@ var ferry = {
 		// If it will, then add it to the spawnQueue
 		if(Game.time%50 == 0)
 		{
-			if(creep.ticksToLive <= 50)
+			if(creep.ticksToLive <= 70)
 			{
 				creep.room.memory.spawnQueue += ("FE"+creep.memory.contID+",");
 			}
@@ -75,14 +75,27 @@ var ferry = {
                 	filter: (structure) => {
                     	return (structure.structureType == STRUCTURE_EXTENSION ||
                         	structure.structureType == STRUCTURE_SPAWN ||
-                        	structure.structureType == STRUCTURE_TOWER ||
-                        	structure.structureType  == STRUCTURE_STORAGE) && structure.store[RESOURCE_ENERGY] < structure.store.getCapacity(RESOURCE_ENERGY);
+                        	structure.structureType == STRUCTURE_TOWER /*||
+                        	structure.structureType  == STRUCTURE_STORAGE*/) && structure.store[RESOURCE_ENERGY] < structure.store.getCapacity(RESOURCE_ENERGY);
                 }
             });
         	if(targets.length > 0) {
             	if(creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                 	creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
             	}
+         	}
+         	else
+         	{
+         	    targets = creep.room.find(FIND_STRUCTURES, {
+         	        filter: (structure) => {
+         	            return (structure.structureType == STRUCTURE_STORAGE) && structure.store[RESOURCE_ENERGY] < structure.store.getCapacity(RESOURCE_ENERGY);
+         	        }
+         	    });
+         	    if(targets.length > 0){
+         	        if(creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE){
+         	            creep.travelTo(targets[0]);
+         	        }
+         	    }
          	}
 		}
 
