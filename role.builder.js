@@ -2,8 +2,7 @@ var roleBuilder = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-
-        if(creep.memory.building && creep.carry.energy == 0) {
+        if((creep.memory.building && creep.carry.energy == 0) || creep.memory.building == undefined) {
             creep.memory.building = false;
             creep.say('🔄 harvest');
         }
@@ -11,27 +10,28 @@ var roleBuilder = {
             creep.memory.building = true;
             creep.say('🚧 build');
         }
-
+        
         if(creep.memory.building) {
             var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
-            if(targets.length) {
-                if(creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
-                }
-            }
-            // If not building, then repairing
-            else if(targets = creep.room.find(FIND_MY_STRUCTURES, {
+            var structures = creep.room.find(FIND_STRUCTURES, {
                 filter: (conts) => {
                     return (conts.structureType == STRUCTURE_CONTAINER ||
                             conts.structureType == STRUCTURE_EXTENSION ||
                             conts.structureType == STRUCTURE_TOWER
                         ) && conts.hits < conts.hitsMax;
                 }
-            }) && targets.length)
+            });
+            if(targets.length) {
+                if(creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
+                }
+            }
+            // If not building, then repairing
+            else if(structures.length)
             {
-                if(creep.repair(targets) == ERR_NOT_IN_RANGE)
+                if(creep.repair(structures[0]) == ERR_NOT_IN_RANGE)
                 {
-                    creep.travelTo(targets);
+                    creep.travelTo(structures[0]);
                 }
             }
             // If not building, then upgrading
