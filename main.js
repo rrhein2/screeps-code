@@ -5,6 +5,7 @@
 require('prototype.creep');
 require('prototype.tower');
 require('prototype.source');
+require('prototype.spawn');
 require('Traveler')
 
 module.exports.loop = function () {
@@ -117,8 +118,8 @@ module.exports.loop = function () {
         }
         creep.runRole();
     }
-    
-    if(harvs < 4)
+    /*
+    if(harvs < 1)
     {
         Game.spawns['Spawn1'].spawnCreep([MOVE, WORK,WORK, CARRY,CARRY], "harv"+Game.time, {memory:{role:'harvester'}})
     }
@@ -150,5 +151,11 @@ module.exports.loop = function () {
     if(buildrs<2)
     {
         Game.spawns['Spawn1'].spawnCreep([MOVE,MOVE, WORK,WORK, CARRY,CARRY], "buil"+Game.time, {memory:{role:'builder'}})
+    }
+    */
+    for(var s in Game.spawns)
+    {
+    	var spawn = Game.spawns[s];
+    	spawn.spawner();
     }
 }
