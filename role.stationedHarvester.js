@@ -6,7 +6,7 @@ var stationedHarvester = {
 		{
 			if(creep.ticksToLive < 50)
 			{
-				creep.room.memory.spawnQueue += ("SH"+creep.memory.srcID+",");
+				Game.rooms[creep.memory.home].memory.spawnQueue += ("SH"+creep.memory.srcID+",");
 			}
 		}
 

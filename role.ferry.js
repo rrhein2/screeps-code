@@ -7,7 +7,7 @@ var ferry = {
 		{
 			if(creep.ticksToLive < 50)
 			{
-				creep.room.memory.spawnQueue += ("FE"+creep.memory.contID+",");
+				Game.rooms[creep.memory.home].memory.spawnQueue += ("FE"+creep.memory.contID+",");
 			}
 		}
 

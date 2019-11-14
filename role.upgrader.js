@@ -7,7 +7,7 @@ var roleUpgrader = {
 		{
 			if(creep.ticksToLive < 30)
 			{
-				creep.room.memory.spawnQueue += ("U0,");
+				Game.rooms[creep.memory.home].memory.spawnQueue += ("U0,");
 			}
 		}
 

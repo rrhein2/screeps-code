@@ -7,7 +7,7 @@ var roleHarvester = {
 		{
 			if(creep.ticksToLive < 30)
 			{
-				creep.room.memory.spawnQueue += ("H0,");
+				Game.rooms[creep.memory.home].memory.spawnQueue += ("H0,");
 			}
 		}
 
