@@ -4,7 +4,9 @@ var roles =
 	stHarv: require('role.stationedHarvester'),
 	ferry: require('role.ferry'),
 	builder: require('role.builder'),
-	upgrader: require('role.upgrader')
+	upgrader: require('role.upgrader'),
+	cart: require('role.cartographer'),
+	prot: require('role.defender')
 }
 
 Creep.prototype.runRole =
