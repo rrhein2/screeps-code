@@ -6,6 +6,7 @@ require('prototype.creep');
 require('prototype.tower');
 require('prototype.source');
 require('prototype.spawn');
+require('prototype.room');
 require('Traveler')
 
 module.exports.loop = function () {
@@ -28,6 +29,48 @@ module.exports.loop = function () {
             console.log('tower: ' + tower.room.name + '; ' + tower.pos.x + ', ' + tower.pos.y + ' errored: '  + error);
         }
     }
+
+    // if(Game.time%2000 != 0)
+    // {
+    //     for(var r in Game.rooms)
+    //     {
+    //         var room = Game.rooms[r];
+    //         if(room.memory.area == undefined)
+    //         {
+    //             room.memory.area = [];
+    //             var center = room.name;
+    //             var WE = center[0];
+    //             var NS = "";
+    //             var WENum = -1;
+    //             var NSNum = -1;
+    //             for(var i = 1; i < center.length; i++)
+    //             {
+    //                 if(center.charCodeAt(i) >= 65 && center.charCodeAt(i) <= 122)
+    //                 {
+    //                     NS = center[i];
+    //                     WENum = parseInt(center.substring(1, i),10);
+    //                     NSNum = parseInt(center.substring(i+1, center.length),10);
+    //                 }
+    //             }
+    //             WENum -= 5;
+    //             NSNum -= 5;
+    //             for(var i = 0; i < 11; i++)
+    //             {
+    //                 for(var j = 0; j < 11; j++)
+    //                 {
+    //                     if((WE+WENum+NS+NSNum).includes('-'))
+    //                     {
+    //                         continue;
+    //                     }
+    //                     room.memory.area.push(WE+WENum+NS+NSNum);
+    //                     WENum++;
+    //                 }
+    //                 NSNum++;
+    //                 WENum = 0;
+    //             }
+    //         }
+    //     }
+    // }
 
     // This went horribly wrong and kept adding tons of stationary harvesters.  Revisit later maybe,
     // but for now I'm swapping to the occasional polling and then refreshing to last polled state down below
@@ -64,7 +107,7 @@ module.exports.loop = function () {
     if(Game.time%300 == 0)
     {
     	var poll = "";
-    	for(var r in Memory.rooms)
+    	for(var r in Game.rooms)
     	{
     		//console.log(Game.rooms[r].find(FIND_MY_CREEPS));
     		var c = Game.rooms[r].find(FIND_MY_CREEPS);
