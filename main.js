@@ -104,13 +104,18 @@ module.exports.loop = function () {
     }*/
 
     // Poll the room to see what creeps are there and then store it in room memory
+    // also see if rcl  has upgraded
     if(Game.time%300 == 0)
     {
     	var poll = "";
     	for(var r in Game.rooms)
     	{
-    		//console.log(Game.rooms[r].find(FIND_MY_CREEPS));
-    		var c = Game.rooms[r].find(FIND_MY_CREEPS);
+            rm = Game.rooms[r]
+    		var c = rm.find(FIND_MY_CREEPS);
+    		if(rm.controller.my && c.length == 0)
+    		{
+    		    rm.memory.spawnQueue += "HA,UP,HA,HA,BU,UP,BU,HA,"
+    		}
     		for(var i = 0; i < c.length; i++)
     		{
     			if(c[i].memory.role == "harvester")
@@ -134,9 +139,19 @@ module.exports.loop = function () {
     				poll += "SH,";
     			}
     		}
-    		Game.rooms[r].memory.backup = poll;
+    		rm.memory.backup = poll;
     		poll = "";
     	}
+
+        for(var s in Game.spawns)
+        {
+            spwn = Game.spawns[s]
+            if(spwn.room.controller.level > spwn.room.memory.level)
+            {
+                spwn.room.memory.level = spwn.room.controller.level;
+                spwn.room.update();
+            }
+        }
     }
 
 
@@ -144,20 +159,12 @@ module.exports.loop = function () {
 
 
   
-    var  harvs = 0, upgrs = 0; buildrs = 0;
+    var  cart = 0;
+
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
-        if(creep.memory.role == 'harvester') {
-            //roleHarvester.run(creep);
-            harvs = harvs+1;
-        }
-        if(creep.memory.role == 'upgrader') {
-            //roleUpgrader.run(creep);
-            upgrs = upgrs+1;
-        }
-        if(creep.memory.role == 'builder') {
-            //roleBuilder.run(creep);
-            buildrs = buildrs+1;
+        if(creep.memory.role == 'cart') {
+            cart += 1;
         }
         creep.runRole();
     }
@@ -200,5 +207,10 @@ module.exports.loop = function () {
     {
     	var spawn = Game.spawns[s];
     	spawn.spawner();
+        //var path = spawn.pos.findPathTo(spawn.room.controller);
+        //for(var i = 0; i < path.length; i++)
+        //{
+            //spawn.room.createConstructionSite(path[i].x, path[i].y,  STRUCTURE_ROAD)
+        //}
     }
 }
