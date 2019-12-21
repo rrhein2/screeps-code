@@ -39,7 +39,7 @@ Room.prototype.explore =
 		else if(this.controller == undefined)
 		{
 			Memory.rooms[this.name].status = "explored";
-			Memory.rooms[this.name].searchTime = Game.time + 1000;
+			Memory.rooms[this.name].searchTime = Game.time + 3000;
 		}
 		// If the  controller is owned or is reserved and it isn't mine then it is an enemy
 		else if(!this.controller.my && (this.controller.owner !=  undefined || this.controller.reserved  != undefined))
@@ -60,3 +60,32 @@ Room.prototype.explore =
 			Memory.rooms[this.name].searchTime = -1;
 		}
 	};
+
+Room.prototype.update = 
+	function()
+{
+		// Increase in extensions
+		var ext = 0
+		var tow = 0
+		for(f of this.find(FIND_FLAGS))
+		{
+			var name = f.name
+			if(name.includes("Build:"))
+			{
+				if(name.includes("extension") && ext < extensionIncreases[this.memory.level])
+				{
+					ext++
+					this.createConstructionSite(f.pos, STRUCTURE_EXTENSION)
+					f.remove()
+				}
+				if(name.includes("tower") && this.memory.level >= 3)
+				{
+					tow++
+					this.createConstructionSite(f.pos, STRUCTURE_TOWER)
+					f.remove()
+				}
+			}
+		}
+	}
+
+const extensionIncreases = {2:5, 3:5, 4:10, 5:10, 6:10, 7:10, 8:10}
