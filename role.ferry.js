@@ -5,8 +5,9 @@ var ferry = {
 		// If it will, then add it to the spawnQueue
 		if(Game.time%50 == 0)
 		{
-			if(creep.ticksToLive < 50)
+			if(creep.ticksToLive < 50 && creep.memory.inQueue == false)
 			{
+				creep.memory.inQueue = true
 				Game.rooms[creep.memory.home].memory.spawnQueue += ("FE"+creep.memory.contID+",");
 			}
 		}
@@ -81,7 +82,7 @@ var ferry = {
             });
         	if(targets.length > 0) {
             	if(creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                	creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
+                	creep.travelTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
             	}
          	}
          	else

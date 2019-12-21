@@ -6,7 +6,7 @@ var defender = {
 		{
 			if(creep.ticksToLive < 30 && !creep.memory.inQueue)
 			{
-				Game.rooms[creep.memory.home].memory.spawnQueue += (creep.memory.mark+",");
+				Game.rooms[creep.memory.home].memory.spawnQueue += "DF,";
 				creep.memory.inQueue = true;
 			}
 		}

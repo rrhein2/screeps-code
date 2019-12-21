@@ -5,9 +5,10 @@ var roleUpgrader = {
 
     	if(Game.time%30 == 0)
 		{
-			if(creep.ticksToLive < 30)
+			if(creep.ticksToLive < 30 && creep.memory.inQueue == false)
 			{
-				Game.rooms[creep.memory.home].memory.spawnQueue += ("U0,");
+                creep.memory.inQueue = true
+				Game.rooms[creep.memory.home].memory.spawnQueue += ("UP,");
 			}
 		}
 
@@ -28,14 +29,22 @@ var roleUpgrader = {
         else {
             var energyCont = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
                 filter: (cont) => {
-                    return (cont.structureType == STRUCTURE_EXTENSION ||
+                    return (/*cont.structureType == STRUCTURE_EXTENSION ||*/
                             cont.structureType == STRUCTURE_CONTAINER ||
                             cont.structureType == STRUCTURE_STORAGE
                     ) && cont.store[RESOURCE_ENERGY] > 0;
                 }
             });
             if(creep.withdraw(energyCont, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(energyCont, {visualizePathStyle: {stroke: '#ffaa00'}});
+                creep.travelTo(energyCont, {visualizePathStyle: {stroke: '#ffaa00'}});
+            }
+            else if(energyCont == null)
+            {
+                energyCont = creep.room.find(FIND_SOURCES);
+                if(creep.harvest(energyCont[0]) == ERR_NOT_IN_RANGE)
+                {
+                    creep.travelTo(energyCont[0]);
+                }
             }
         }
     }

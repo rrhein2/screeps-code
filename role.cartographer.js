@@ -2,43 +2,95 @@ var roleCartographer =
 {
 	run: function(creep)
 	{
-		// Add to spawn queue of home room
-		// if(creep.hits < creep.hitsMax)
-		// {
-		// 	console.log("inside suicide pact");
-		// 	Game.rooms[creep.memory.home].memory.spawnQueue += ("CT,");
-		// 	creep.suicide();
-		// }
-		// if(Game.time%30 == 0)
-		// {
-		// 	if(creep.ticksToLive < 30)
-		// 	{
-		// 		Game.rooms[creep.memory.home].memory.spawnQueue += ("CT,");
-		// 	}
-		// }
-		// Randomly choose an adjacent room if you don't have a destination
-		if(creep.memory.destination == undefined || creep.memory.destination == creep.room.name)
+		if(Game.time%30 == 0)
 		{
-			creep.moveTo(25,25);
-			// Memory.rooms[creep.memory.home].area.push(creep.memory.destination);
-			// creep.memory.destination = Memory.rooms[creep.memory.home].area.shift();
-			
-			// var direction = Math.floor(Math.random()*4);
-			// creep.memory.destination = (direction == 0 ? "1" : (direction == 1 ? "3" : (direction == 2 ? "5" : (direction == 3 ? "7" : "-1"))));
-			// creep.memory.destination = Game.map.describeExits(creep.room.name)[creep.memory.destination];
+			if(creep.ticksToLive < 30 && !creep.memory.inSpawnQueue)
+			{
+				Game.rooms[creep.memory.home].memory.spawnQueue += ("CT,");
+				creep.memory.inSpawnQueue = true;
+			}
 		}
-		if(creep.room.memory.searchTime == undefined || (creep.room.memory.searchTime <= Game.time && creep.room.memory.searchTime != -1))
+		else if(creep.room.memory.status == 'enemy' && creep.memory.inSpawnQueue)
 		{
-			console.log('here');
+			Game.rooms[creep.memory.home].memory.spawnQueue += ("CT,");
+			creep.memory.inSpawnQueue = true;
+		}
+
+		// If I don't have a destination room, or I am in it, then generate a new one
+		if(creep.memory.destination == undefined)
+		{
+			creep.memory.destination = getDestination(creep);
+			creep.memory.exitCoords = undefined;
+		}
+		else if(creep.room.name == creep.memory.destination)
+		{
+			creep.moveTo(25,25,creep.room.name);
 			creep.room.explore();
+			creep.memory.destination = getDestination(creep);
+			creep.memory.exitCoords = undefined;
 		}
 		else
 		{
-			creep.moveTo(creep.pos.findClosestByPath(creep.room.findExitTo(creep.memory.destination)));
-			//console.log(creep.room.findExitTo(creep.memory.destination));
+			if(creep.memory.exitCoords == undefined)
+			{
+				var coords = creep.pos.findClosestByPath(creep.room.findExitTo(creep.memory.destination))
+				creep.memory.exitCoords = [coords.x, coords.y]
+			}
+			else
+			{
+				console.log(creep.moveTo(new RoomPosition(creep.memory.exitCoords[0], creep.memory.exitCoords[1], creep.memory.destination)));
+			}
 		}
+
+
 
 	}
 }
+
+function getDestination(creep)
+	{
+		// Currently using greedy algorithm that allows for unknown rooms
+		// to have the highest search value, and visited rooms are given
+		// a search value based on the last time they were visited and
+		// if they were or were not an enemy room
+		var nextRoom = '';
+		var highScore = -9999999;
+		var tempScore = 0;
+		var exits = Game.map.describeExits(creep.room.name);
+		for(exit in exits)
+		{
+			// Reset temp score for each room
+			tempScore = 0;
+			if(Memory.rooms[exits[exit]] == undefined)
+			{
+				tempScore += 2000;
+			}
+			else
+			{
+				if(Memory.rooms[exits[exit]].status == 'mine')
+				{
+					tempScore += 0;
+				}
+				else
+				{
+					tempScore += 1900 - ((Memory.rooms[exits[exit]].searchTime - Game.time) >= 0 ? (Memory.rooms[exits[exit]].searchTime - Game.time) : 0);
+					if(Memory.rooms[exits[exit]].status == 'enemy')
+					{
+						tempScore -= 300;
+					}
+				}
+			}
+			if(!Game.map.isRoomAvailable(exits[exit]))
+			{
+				tempScore = -3000;
+			}
+			if(tempScore > highScore)
+			{
+				nextRoom = exits[exit];
+				highScore = tempScore;
+			}
+		}
+		return nextRoom;
+	}
 
 module.exports = roleCartographer;
