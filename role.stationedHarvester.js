@@ -2,11 +2,12 @@ var stationedHarvester = {
 	run: function(creep)
 	{
 		// Every 50 ticks, check if the ttl is < 50, if it is then queue a new spawn
-		if(Game.time%50 == 0)
+		if(Game.time%30 == 0)
 		{
-			if(creep.ticksToLive < 50)
+			if(creep.ticksToLive < 100 && creep.memory.inQueue == false)
 			{
-				Game.rooms[creep.memory.home].memory.spawnQueue += ("SH"+creep.memory.srcID+",");
+				creep.memory.inQueue = true;
+				Game.rooms[creep.memory.home].memory.spawnQueue = ("SH"+creep.memory.srcID+",") + Game.rooms[creep.memory.home].memory.spawnQueue;
 			}
 		}
 
@@ -24,6 +25,7 @@ var stationedHarvester = {
 			var used = false;
 			for(var i = 0; i < sources.length; i++)
 			{
+				used = false
 				for(var j = 0; j < creeps.length; j++)
 				{
 					// Check every statHarv to see if they are using this source
@@ -85,6 +87,10 @@ var stationedHarvester = {
 				{
 					creep.repair(containers[0]);
 				}
+				// else if(creep.pos != containers[0].pos)
+				// {
+				// 	creep.travelTo(containers[0])
+				// }
 				else
 				{
 					if(creep.pos.x == containers[0].pos.x && creep.pos.y == containers[0].pos.y)

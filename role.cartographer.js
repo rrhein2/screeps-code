@@ -4,7 +4,7 @@ var roleCartographer =
 	{
 		if(Game.time%30 == 0)
 		{
-			if(creep.ticksToLive < 30 && !creep.memory.inSpawnQueue)
+			if(creep.ticksToLive < 90 && !creep.memory.inSpawnQueue)
 			{
 				Game.rooms[creep.memory.home].memory.spawnQueue += ("CT,");
 				creep.memory.inSpawnQueue = true;
@@ -94,3 +94,4 @@ function getDestination(creep)
 	}
 
 module.exports = roleCartographer;
+

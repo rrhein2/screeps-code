@@ -4,7 +4,7 @@ var defender = {
 
 		if(Game.time%30 == 0)
 		{
-			if(creep.ticksToLive < 30 && !creep.memory.inQueue)
+			if(creep.ticksToLive < 90 && !creep.memory.inQueue)
 			{
 				Game.rooms[creep.memory.home].memory.spawnQueue += "DF,";
 				creep.memory.inQueue = true;
@@ -12,7 +12,7 @@ var defender = {
 		}
 		if(creep.hits < creep.hitsMax &&  !creep.memory.inQueue)
 		{
-			Game.rooms[creep.memory.home].memory.spawnQueue += (creep.memory.mark+"");
+			Game.rooms[creep.memory.home].memory.spawnQueue += "DF,";
 			creep.memory.inQueue = true;
 		}
 
@@ -104,6 +104,8 @@ var defender = {
 		var enemies = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
 		if(enemies != null)
 		{
+			// Switch room's attacked state to true
+			creep.room.memory.recentlyAttacked = true
 			if(creep.attack(enemies) == ERR_NOT_IN_RANGE)
 			{
 				creep.travelTo(enemies);
@@ -136,3 +138,5 @@ var defender = {
 };
 
 module.exports = defender;
+
+const whitelist = ["Ed_"];

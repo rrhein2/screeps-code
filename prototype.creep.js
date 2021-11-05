@@ -6,7 +6,14 @@ var roles =
 	builder: require('role.builder'),
 	upgrader: require('role.upgrader'),
 	cart: require('role.cartographer'),
-	prot: require('role.defender')
+	prot: require('role.defender'),
+	rohanian: require('role.rohanian'),
+	wallE: require('role.wallE'),
+	basicRemoteHarv: require('role.basicRemoteHarv'),
+	colonizer: require('role.colonizer'),
+	baseManager: require('role.baseManager'),
+	claimer: require('role.claimer'),
+	graverobber: require('role.graverobber')
 }
 
 Creep.prototype.runRole =

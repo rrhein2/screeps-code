@@ -10,7 +10,6 @@ require('prototype.room');
 require('Traveler')
 
 module.exports.loop = function () {
-    
     for(var i in Memory.creeps) {
         if(!Game.creeps[i]) {
             delete Memory.creeps[i];
@@ -30,131 +29,100 @@ module.exports.loop = function () {
         }
     }
 
-    // if(Game.time%2000 != 0)
-    // {
-    //     for(var r in Game.rooms)
-    //     {
-    //         var room = Game.rooms[r];
-    //         if(room.memory.area == undefined)
-    //         {
-    //             room.memory.area = [];
-    //             var center = room.name;
-    //             var WE = center[0];
-    //             var NS = "";
-    //             var WENum = -1;
-    //             var NSNum = -1;
-    //             for(var i = 1; i < center.length; i++)
-    //             {
-    //                 if(center.charCodeAt(i) >= 65 && center.charCodeAt(i) <= 122)
-    //                 {
-    //                     NS = center[i];
-    //                     WENum = parseInt(center.substring(1, i),10);
-    //                     NSNum = parseInt(center.substring(i+1, center.length),10);
-    //                 }
-    //             }
-    //             WENum -= 5;
-    //             NSNum -= 5;
-    //             for(var i = 0; i < 11; i++)
-    //             {
-    //                 for(var j = 0; j < 11; j++)
-    //                 {
-    //                     if((WE+WENum+NS+NSNum).includes('-'))
-    //                     {
-    //                         continue;
-    //                     }
-    //                     room.memory.area.push(WE+WENum+NS+NSNum);
-    //                     WENum++;
-    //                 }
-    //                 NSNum++;
-    //                 WENum = 0;
-    //             }
-    //         }
-    //     }
-    // }
-
-    // This went horribly wrong and kept adding tons of stationary harvesters.  Revisit later maybe,
-    // but for now I'm swapping to the occasional polling and then refreshing to last polled state down below
-    /*if(Game.time%100)
-    {
-    	// Check if every source has a statHarv, if not then add one to the spawn queue with that source ID
-    	for(var r in  Memory.rooms)
-    	{
-    		for(var s in r.sources)
-    		{
-    			var stHarvs = r.find(FIND_MY_CREEPS, {
-    				filter: (crp) => {
-    					return (crp.memory.role == 'stHarv');
-    				}
-    			});
-    			var used = false;
-    			for(var c in stHarvs)
-    			{
-    				if(s.id == c.memory.srcID)
-    				{
-    					used = true;
-    					break
-    				}
-    			}
-    			if(!used)
-    			{
-    				r.memory.spawnQueue += "SH"+s.id+",";
-    			}
-    		}
-    	}
-    }*/
 
     // Poll the room to see what creeps are there and then store it in room memory
     // also see if rcl  has upgraded
     if(Game.time%300 == 0)
     {
-    	var poll = "";
     	for(var r in Game.rooms)
     	{
+            var poll = {"HA":0, "BU":0, "UP":0, "FE-1":0,  "SH-1":0, "DF":0, "WE":0, "BM":0};
             rm = Game.rooms[r]
     		var c = rm.find(FIND_MY_CREEPS);
-    		if(rm.controller.my && c.length == 0)
-    		{
-    		    rm.memory.spawnQueue += "HA,UP,HA,HA,BU,UP,BU,HA,"
-    		}
-    		for(var i = 0; i < c.length; i++)
-    		{
-    			if(c[i].memory.role == "harvester")
-    			{
-    				poll += "H,";
-    			}
-    			else if(c[i].memory.role == "builder")
-    			{
-    				poll += "B,";
-    			}
-    			else if(c[i].memory.role == "upgrader")
-    			{
-    				poll += "U,";
-    			}
-    			else if(c[i].memory.role == "ferry")
-    			{
-    				poll += "F,";
-    			}
-    			else if(c[i].memory.role == "stHarv")
-    			{
-    				poll += "SH,";
-    			}
-    		}
-    		rm.memory.backup = poll;
-    		poll = "";
+    		// if(rm.controller.my && c.length <= 3)
+    		// {
+    		//     rm.memory.spawnQueue = "HA,HA,UP,BU,BM-1,"
+      //           rm.memory.recentlyAttacked = false
+    		// }
+            if(c.length > 4)
+            {
+        		for(var i = 0; i < c.length; i++)
+        		{
+        			if(c[i].memory.role == "harvester")
+        			{
+        				poll["HA"]++
+        			}
+        			else if(c[i].memory.role == "builder")
+        			{
+        				poll["BU"]++
+        			}
+        			else if(c[i].memory.role == "upgrader")
+        			{
+        				poll["UP"]++
+        			}
+        			else if(c[i].memory.role == "ferry")
+        			{
+        				poll["FE-1"]++
+        			}
+        			else if(c[i].memory.role == "stHarv")
+        			{
+        				poll["SH-1"]++
+        			}
+                    else if(c[i].memory.role == "prot")
+                    {
+                        poll["DF"]++
+                    }
+                    else if(c[i].memory.role == "wallE")
+                    {
+                        poll["WE"]++
+                    }
+                    else if(c[i].memory.role == "baseManager")
+                    {
+                        poll['BM']++
+                    }
+        		}
+                rm.memory.backup = poll;
+            }
+            else
+            {
+                rm.memory.recentlyAttacked = true
+            }
     	}
 
         for(var s in Game.spawns)
         {
             spwn = Game.spawns[s]
-            if(spwn.room.controller.level > spwn.room.memory.level)
+            if(spwn.room.memory.level == undefined)
             {
-                spwn.room.memory.level = spwn.room.controller.level;
-                spwn.room.update();
+                spwn.room.memory.level = -1
+            }
+            // if(spwn.room.controller.level > spwn.room.memory.level)
+            // {
+            //     spwn.room.memory.level = spwn.room.controller.level;
+            //     spwn.room.update();
+            // }
+        }
+        for(var rm in Game.rooms)
+        {
+            var room = Game.rooms[rm]
+            try
+            {
+                if(room.memory.level == undefined)
+                {
+                    room.memory.level = -1
+                }
+                if(room.controller.level  > room.memory.level)
+                {
+                    room.memory.level = room.controller.level
+                    room.update()
+                }
+            }
+            catch
+            {
+                console.log(room.name + " is throwing undefined level")
             }
         }
     }
-
-
 
 
 
@@ -168,49 +136,11 @@ module.exports.loop = function () {
         }
         creep.runRole();
     }
-    /*
-    if(harvs < 1)
-    {
-        Game.spawns['Spawn1'].spawnCreep([MOVE, WORK,WORK, CARRY,CARRY], "harv"+Game.time, {memory:{role:'harvester'}})
-    }
-    if(Game.spawns['Spawn1'].room.memory.spawnQueue.length > 1)
-    {
-        var queue = Game.spawns['Spawn1'].room.memory.spawnQueue;
-        var next = queue.substring(0, queue.indexOf(','));
-        if(next.substring(0, 2) == "SH")
-        {
-            if(Game.spawns['Spawn1'].spawnCreep([MOVE,MOVE, WORK, WORK, WORK, WORK, WORK, WORK, CARRY], "stHarv"+Game.time, {memory:{role:'stHarv', srcID:next.substring(2)}}) == 0)
-            {
-                // if it was spawned, remove from queue
-                Game.spawns['Spawn1'].room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
-            }
-        }
-        else if(next.substring(0, 2) == 'FE')
-        {
-            if(Game.spawns['Spawn1'].spawnCreep([MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY], "ferry"+Game.time, {memory:{role:'ferry', contID:next.substring(2)}}) == 0)
-            {
-                // if it was spawned, remove from queue
-                Game.spawns['Spawn1'].room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
-            }
-        }
-    }
-    if(upgrs < 2)
-    {
-        Game.spawns['Spawn1'].spawnCreep([MOVE, MOVE,MOVE,MOVE,MOVE, WORK, WORK,WORK,WORK, CARRY, CARRY,CARRY,CARRY,CARRY,CARRY], "upgr"+Game.time, {memory:{role:'upgrader'}})
-    }
-    if(buildrs<2)
-    {
-        Game.spawns['Spawn1'].spawnCreep([MOVE,MOVE, WORK,WORK, CARRY,CARRY], "buil"+Game.time, {memory:{role:'builder'}})
-    }
-    */
+    
+
     for(var s in Game.spawns)
     {
     	var spawn = Game.spawns[s];
     	spawn.spawner();
-        //var path = spawn.pos.findPathTo(spawn.room.controller);
-        //for(var i = 0; i < path.length; i++)
-        //{
-            //spawn.room.createConstructionSite(path[i].x, path[i].y,  STRUCTURE_ROAD)
-        //}
     }
 }
