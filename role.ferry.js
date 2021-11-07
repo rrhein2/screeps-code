@@ -52,12 +52,16 @@ var ferry = {
 		}
 
 		var cont = Game.getObjectById(creep.memory.contID);
+		// if(creep.name == "ferry7777")
+		// {
+		// 	console.log(creep.memory.toCont)
+		// }
 		if(!creep.memory.toCont  && creep.store.getUsedCapacity() == 0)
 		{
 			creep.memory.toCont = true;
 			creep.memory.target = null
 		}
-		else if(creep.memory.toCont/* && creep.store.getUsedCapacity() == creep.store.getCapacity()*/)
+		else if(creep.memory.toCont && creep.store.getUsedCapacity() >= 1)
 		{
 			creep.memory.toCont = false;
 		}
