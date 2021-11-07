@@ -9,6 +9,7 @@ require('prototype.spawn');
 require('prototype.room');
 require('Traveler')
 
+
 module.exports.loop = function () {
     for(var i in Memory.creeps) {
         if(!Game.creeps[i]) {
@@ -121,6 +122,28 @@ module.exports.loop = function () {
             {
                 console.log(room.name + " is throwing undefined level")
             }
+
+            try
+            {
+                // This should spawn a cartographer every ~2 hours (7500 ticks) in rooms level 3 and higher
+                if(Game.tiem % 2500 == 0 && room.memory.level >= 3)
+                {
+                    room.memory.spawnQueue += "CT-1,"
+                }
+            }
+            catch 
+            {
+                console.log("FAILED TO SPAWN CARTOGRAPHER IN ROOM " + room.name)
+            }
+        }
+    }
+
+    // Every 20,000 ticks, reset the cpuUsage stats, so that the averages don't become so large that they can't be affected by changes
+    if(Game.time % 20000 == 0)
+    {
+        for(var val in Memory.cpuUsage.creeps)
+        {
+            Memory.cpuUsage.creeps[val] = 0
         }
     }
 
@@ -130,11 +153,20 @@ module.exports.loop = function () {
     var  cart = 0;
 
     for(var name in Game.creeps) {
+        const startCPU = Game.cpu.getUsed()
+
         var creep = Game.creeps[name];
         if(creep.memory.role == 'cart') {
             cart += 1;
         }
         creep.runRole();
+
+        const used = Game.cpu.getUsed() - startCPU
+        const prevAvg = Memory.cpuUsage.creeps[creep.memory.role]
+        const count = Memory.cpuUsage.creeps[creep.memory.role + "Count"]
+
+        Memory.cpuUsage.creeps[creep.memory.role] = prevAvg + ((used - prevAvg) / (count + 1))
+        Memory.cpuUsage.creeps[creep.memory.role + "Count"] = count+1
     }
     
 
@@ -143,4 +175,15 @@ module.exports.loop = function () {
     	var spawn = Game.spawns[s];
     	spawn.spawner();
     }
+
+    const st = Game.cpu.getUsed()
+    for (var s in Game.structures)
+    {
+        var structure = Game.structures[s]
+        if(structure.structureType == STRUCTURE_ROAD)
+        {
+            structure.runRole()
+        }
+    }
+    console.log(Game.cpu.getUsed())
 }
