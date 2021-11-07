@@ -11,14 +11,14 @@ StructureTower.prototype.runRole =
             if(closestHurt != undefined) {
                 this.heal(closestHurt);
             }
-            let closestRoad = this.pos.findClosestByRange(FIND_STRUCTURES, {
-                filter: (struct) => {
-                    return (struct.structureType == STRUCTURE_ROAD && struct.hits < struct.hitsMax && this.pos.inRangeTo(struct, 20))
-                }
-            })
-            if(closestRoad != undefined)
-            {
-                this.repair(closestRoad)
-            }
+            // let closestRoad = this.pos.findClosestByRange(FIND_STRUCTURES, {
+            //     filter: (struct) => {
+            //         return (struct.structureType == STRUCTURE_ROAD && struct.hits < struct.hitsMax && this.pos.inRangeTo(struct, 20))
+            //     }
+            // })
+            // if(closestRoad != undefined)
+            // {
+            //     this.repair(closestRoad)
+            // }
         }
     };
