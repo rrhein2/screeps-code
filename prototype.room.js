@@ -1,3 +1,184 @@
+Room.prototype.resetCreepCPUStats =
+	function()
+	{
+		for(var val in this.memory.cpuUsage.creeps)
+		{
+			console.log(val)
+		}
+	}
+
+Room.prototype.findCenter =
+    function()
+    {
+    	// TO CONVERT FROM INDEX TO COORDS:
+    	//   index % 50 = X coord
+    	//   (index - X coord) / 50 = Y coord
+    	var PER_ROW = 50
+    	var BASE_AXIAL_LEN = 8
+    	var terrain = new Room.Terrain(this.name)
+    	var rawTerrain = terrain.getRawBuffer()
+    	var index = -1
+    	var failure = false
+    	var possibleCenters = {}
+    	var swampSpaces = 0
+    	// Itterate through the grid starting at 7 and going to PER_ROW-7 because I need 7 spaces from the edge to make the base
+    	// for(var i = 15; i < 18; i++)
+    	for(var i = 7; i < PER_ROW-7; i++)
+    	{
+    		// for(var j = 7; j < 31; j++)
+    		for(var j = 7; j < PER_ROW-7; j++)
+    		{
+    			index = j + (i * PER_ROW)
+    			failure = false
+    			// Check to the right first, because if something is there I can skip those spaces for a recheck
+    			for(var k = 0; k < BASE_AXIAL_LEN; k++)
+    			{
+    				if(rawTerrain[index + k] == 1)
+    				{
+    					// If there is a wall at index+k, continue parsing at k+1 and break the k loop
+    					// console.log("Failed at X:" + (j+k) + ", Y: " + i)
+    					// console.log(rawTerrain(index + k))
+    					j += k+1
+    					k = 10
+    					failure = true
+    				}
+    			}
+    			// if the path failed, continue to next parse point along x axis
+    			if(failure)
+    			{
+    				// console.log("X: " + j + ", Y: " + i)
+    				// console.log('inside fail 1')
+    				continue
+    			}
+
+    			// Assuming path did not fail, check the diagonal from the right-most point to the bottom-most point
+    			//   if there is a conflict, calculate the minimum x-shift to avoid it and start again there
+    			for(var k = 0; k < BASE_AXIAL_LEN; k++)
+    			{
+    				var tempIndex = (j + (BASE_AXIAL_LEN - 1 - k)) + ((i+k) * PER_ROW)
+    				if(rawTerrain[tempIndex] == 1)
+    				{
+    					// console.log("Failure index: X: " + (j + BASE_AXIAL_LEN - 1 - k) + ", Y: " + ((i+k) * PER_ROW))
+    					j += k+1
+    					k = 10
+    					failure = true
+    				}
+    			}
+    			// if the path failed, continue to next parse point along x axis
+    			if(failure)
+    			{
+    				// console.log("X: " + j + ", Y: " + i)
+    				// console.log('inside fail 2')
+    				continue
+    			}
+
+    			// If both of these heuristics passed, test entire space for being valid
+    			var xDist = {7:2, 6:3, 5:4, 4:5, 3:6, 2:7, 1:7, 0:7}
+    			swampSpaces = 0
+    			for(var yChange = -7; yChange <= BASE_AXIAL_LEN - 1; yChange++)
+    			{
+    				for(var xChange = -1 * (xDist[Math.abs(yChange)]); xChange <= xDist[Math.abs(yChange)]; xChange++)
+    				{
+    					var tempIndex = ((j + xChange) + ((i + yChange) * PER_ROW))
+    					if(rawTerrain[tempIndex] == 1)
+    					{
+    						xChange = 10
+    						yChange = 10
+    						failure = true
+    					}
+    					else if(rawTerrain[tempIndex] == 2)
+    					{
+    						swampSpaces++
+    					}
+    				}
+    			}
+    			if(failure)
+    			{
+    				// console.log('inside fail 3')
+    				continue
+    			}
+    			else
+    			{
+    				// console.log('DID NOT FAIL')
+    				// console.log("X: " + j + ", Y: " + i)
+    				possibleCenters[index] = swampSpaces
+    			}
+
+
+    			// console.log(j + (i * PER_ROW))
+    			// console.log(rawTerrain[j + (i * PER_ROW)])
+    		}
+    	}
+    	// console.log(rawTerrain)
+    	// console.log(possibleCenters)
+
+    	// Process possible centers for optimal center
+    	//   I should count up the number of swamp spaces in the area while checking for walls
+    	//    then use that and the distance from controller/sources (and maybe minerals, as a small factor)
+    	//    to determine the scores.
+    	var x = -1
+    	var y = -1
+    	var AREA = 57
+    	var MAX_DST = 49
+    	var terrainScore = -1
+    	var distScore = 0
+    	var overallScore = 0
+
+    	var currentMaxScore = -1
+    	var currentCenter
+    	for(const [key, value] of Object.entries(possibleCenters))
+    	{
+    		// reset reused variables
+    		terrainScore = -1
+    		distScore = 0
+    		overallScore = 0
+
+    		// Calculate x and y coords from 1-d array index
+    		x = key % PER_ROW
+    		y = (key - x) / PER_ROW
+    		terrainScore = AREA - value
+
+    		// Calculate distances to sources
+    		if(Memory.rooms[this.name].sources)
+    		{
+	    		for(const key of Object.keys(Memory.rooms[this.name].sources))
+	    		{
+	    			distScore += MAX_DST - Game.getObjectById(key).pos.getRangeTo(x, y)
+	    		}
+    		}
+
+    		// Calculate distance to minerals
+    		if(Memory.rooms[this.name].minerals)
+    		{
+	    		for(const key of Object.keys(Memory.rooms[this.name].minerals))
+	    		{
+	    			// divide by 5 (arbitrary value of 5) because I prioritize minerals less than sources
+	    			distScore += (MAX_DST - Game.getObjectById(key).pos.getRangeTo(x, y))/5
+	    		}
+    		}
+
+    		// Calculate dist to controller
+    		if(this.controller)
+    		{
+    			// Divide by 3 (arbitrary value of 3) because I prioritize controller more than minerals but less than sources
+    			distScore += (MAX_DST - this.controller.pos.getRangeTo(x, y))/3
+    		}
+
+    		// Combine terrain and dist scores
+    		//   (MAX_DST*2 + MAX_DST/3 + MAX_DST/5) is max possible score for distScore
+    		overallScore = (2*(terrainScore / AREA)) + (distScore / (MAX_DST*2 + MAX_DST/3 + MAX_DST/5))
+
+    		if(overallScore > currentMaxScore)
+    		{
+    			currentCenter = key
+    			currentMaxScore = overallScore
+    		}
+    	}
+    	Memory.rooms[this.name].idealCenter = {}
+    	Memory.rooms[this.name].idealCenter.x = (currentCenter % PER_ROW)
+		Memory.rooms[this.name].idealCenter.y = ((currentCenter - (currentCenter % PER_ROW)) / PER_ROW)
+    };
+
 Room.prototype.explore = 
 	function() 
 	{
@@ -14,6 +195,7 @@ Room.prototype.explore =
 
 		// Get an array of varying objects in the room
 		var sources = this.find(FIND_SOURCES);
+		var minerals = this.find(FIND_MINERALS)
 		var enemyCreeps = this.find(FIND_HOSTILE_CREEPS);
 
 		if(sources.length > 0)
@@ -27,6 +209,20 @@ Room.prototype.explore =
 					Memory.rooms[this.name].sources[src.id].x = src.x;
 					Memory.rooms[this.name].sources[src.id].y = src.y;
 				}		
+			}
+		}
+		if(minerals.length > 0)
+		{
+			if(Memory.rooms[this.name].minerals == undefined)
+			{
+				Memory.rooms[this.name].minerals = {};
+				for(var min of minerals)
+				{
+					Memory.rooms[this.name].minerals[min.id] = {}
+					Memory.rooms[this.name].minerals[min.id].x = min.x
+					Memory.rooms[this.name].minerals[min.id].y = min.y
+					Memory.rooms[this.name].minerals[min.id].mineralScore = Math.round((min.density * min.mineralAmount)/1000)
+				}
 			}
 		}
 		// IF there is more than one enemy creep, mark as hostile room

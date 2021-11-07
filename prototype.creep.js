@@ -21,14 +21,14 @@ Creep.prototype.runRole =
 	{
 		if(!this.spawning)
 		{
-			try
-			{
+			// try
+			// {
 				roles[this.memory.role].run(this);	
-			} 
-			catch(error)
-			{
-				console.log('Creep: ' + this.name + ' (room: ' + this.room.name + ') throwing role error ' + error);
-			}
+			// } 
+			// catch(error)
+			// {
+			// 	console.log('Creep: ' + this.name + ' (room: ' + this.room.name + ') throwing role error ' + error);
+			// }
 		}
 	};
 
