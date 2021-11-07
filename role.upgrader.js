@@ -12,7 +12,7 @@ var roleUpgrader = {
 			}
 		}
 
-        if(creep.memory.upgrading && creep.carry.energy == 0) {
+        if(creep.memory.upgrading && creep.carry.energy == 0 || creep.memory.upgrading == undefined) {
             creep.memory.upgrading = false;
             creep.say('🔄 harvest');
         }
@@ -22,11 +22,25 @@ var roleUpgrader = {
         }
 
         if(creep.memory.upgrading) {
-            if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
+            const startCPU = Game.cpu.getUsed()
+            if(creep.pos.inRangeTo(creep.room.controller, 3))
+            {
+                // console.log("running upgrade")
+                creep.upgradeController(creep.room.controller)
             }
+            else
+            {
+                // console.log("pathing")
+                creep.travelTo(creep.room.controller);
+                // console.log("Upgrading branch using " + (Game.cpu.getUsed() - startCPU) + " cpu time")
+            }
+            // if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+            //     creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
+            // }
+            // console.log("Upgrading branch using " + (Game.cpu.getUsed() - startCPU) + " cpu time")
         }
         else {
+            const startCPU = Game.cpu.getUsed()
             var energyCont = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
                 filter: (cont) => {
                     return (/*cont.structureType == STRUCTURE_EXTENSION ||*/
@@ -37,7 +51,7 @@ var roleUpgrader = {
             });
             if(energyCont == null || energyCont == undefined)
             {
-                energyCont = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
+                energyCont = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                     filter: (cont) => {
                         return (
                                 cont.structureType == STRUCTURE_CONTAINER
@@ -59,9 +73,32 @@ var roleUpgrader = {
             if(energyStoresInRoom == null || energyStoresInRoom == undefined)
             {
                 var sources = creep.pos.findClosestByRange(FIND_SOURCES);
-                if(creep.harvest(sources) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(sources, {visualizePathStyle: {stroke: '#ffaa00'}});
+                if(creep.pos.inRangeTo(sources, 1))
+                {
+                    creep.harvest(sources)
                 }
+                else
+                {
+                    reep.moveTo(sources, {visualizePathStyle: {stroke: '#ffaa00'}});
+                }
+                // if(creep.harvest(sources) == ERR_NOT_IN_RANGE) {
+                //     creep.moveTo(sources, {visualizePathStyle: {stroke: '#ffaa00'}});
+                // }
+            }
+            // this else is if there are energy stores in the room, then use them
+            else
+            {
+                if(creep.pos.inRangeTo(energyCont, 1))
+                {
+                    creep.withdraw(energyCont, RESOURCE_ENERGY)
+                }
+                else
+                {
+                    creep.moveTo(energyCont)
+                }
+                // if(creep.withdraw(energyCont, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                //     creep.moveTo(energyCont)
+                // }
             }
             
 
@@ -82,10 +119,7 @@ var roleUpgrader = {
             }
             if(creep.room.storage && !nearStorage(creep.room.lookForAtArea(LOOK_CREEPS, creep.room.storage.pos.y-1, creep.room.storage.pos.x-1, creep.room.storage.pos.y+1, creep.room.storage.pos.x+1, true)))
             {
-                if(creep.withdraw(energyCont, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    creep.travelTo(energyCont, {visualizePathStyle: {stroke: '#ffaa00'}});
-                }
-                else if(energyCont == null)
+                if(energyCont == null)
                 {
                     energyCont = creep.room.find(FIND_SOURCES);
                     for(var i = 0; i < energyCont.length; i++)
@@ -95,12 +129,35 @@ var roleUpgrader = {
                             energyCont.shift()
                         }
                     }
-                    if(creep.harvest(energyCont[0]) == ERR_NOT_IN_RANGE)
+                    if(creep.pos.inRangeTo(energyCont[0], 1))
                     {
-                        creep.travelTo(energyCont[0]);
+                        creep.harvest(energyCont[0])
                     }
+                    else
+                    {
+                        creep.travelTo(energyCont[0])
+                    }
+                    // if(creep.harvest(energyCont[0]) == ERR_NOT_IN_RANGE)
+                    // {
+                    //     creep.travelTo(energyCont[0]);
+                    // }
                 }
+
+
+
+                if(creep.pos.inRangeTo(energyCont, 1))
+                {
+                    creep.withdraw(energyCont, RESOURCE_ENERGY)
+                }
+                else
+                {
+                    creep.travelTo(energyCont, {visualizePathStyle: {stroke: '#ffaa00'}});
+                }
+                // if(creep.withdraw(energyCont, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                //     creep.travelTo(energyCont, {visualizePathStyle: {stroke: '#ffaa00'}});
+                // }
             }
+            // console.log("Getting energy is using " + (Game.cpu.getUsed() - startCPU) + " cpu time")
         }
     }
 };
