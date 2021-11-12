@@ -27,12 +27,13 @@ var roleUpgrader = {
             {
                 // console.log("running upgrade")
                 creep.upgradeController(creep.room.controller)
+                // console.log("Upgrading command using " + (Game.cpu.getUsed() - startCPU) + " cpu time")
             }
             else
             {
                 // console.log("pathing")
                 creep.travelTo(creep.room.controller);
-                // console.log("Upgrading branch using " + (Game.cpu.getUsed() - startCPU) + " cpu time")
+                // console.log("Upgrading branch traveler using " + (Game.cpu.getUsed() - startCPU) + " cpu time")
             }
             // if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
             //     creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
@@ -40,7 +41,7 @@ var roleUpgrader = {
             // console.log("Upgrading branch using " + (Game.cpu.getUsed() - startCPU) + " cpu time")
         }
         else {
-            const startCPU = Game.cpu.getUsed()
+            var startCPU = Game.cpu.getUsed()
             var energyCont = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
                 filter: (cont) => {
                     return (/*cont.structureType == STRUCTURE_EXTENSION ||*/
@@ -59,6 +60,7 @@ var roleUpgrader = {
                     }
                 });
             }
+
             // The above checks to see if there are storage or containers with energy stored
             //   below, check if they exist at all. If they don't then you can take from sources.
             //   but if they exist, then wait for them to be given energy as to not crowd the sources
@@ -70,16 +72,21 @@ var roleUpgrader = {
                     )
                 }
             });
+
+            // console.log("Finding containers takes " + (Game.cpu.getUsed() - startCPU) + " cpu time")
+            startCPU = Game.cpu.getUsed()
             if(energyStoresInRoom == null || energyStoresInRoom == undefined)
             {
                 var sources = creep.pos.findClosestByRange(FIND_SOURCES);
                 if(creep.pos.inRangeTo(sources, 1))
                 {
                     creep.harvest(sources)
+                    // console.log("Harvesting from source takes " + (Game.cpu.getUsed() - startCPU) + " cpu time")
                 }
                 else
                 {
-                    reep.moveTo(sources, {visualizePathStyle: {stroke: '#ffaa00'}});
+                    creep.travelTo(sources, {visualizePathStyle: {stroke: '#ffaa00'}});
+                    // console.log("Traveling to source takes " + (Game.cpu.getUsed() - startCPU) + " cpu time")
                 }
                 // if(creep.harvest(sources) == ERR_NOT_IN_RANGE) {
                 //     creep.moveTo(sources, {visualizePathStyle: {stroke: '#ffaa00'}});
@@ -88,14 +95,25 @@ var roleUpgrader = {
             // this else is if there are energy stores in the room, then use them
             else
             {
-                if(creep.pos.inRangeTo(energyCont, 1))
+                if(energyCont)
                 {
-                    creep.withdraw(energyCont, RESOURCE_ENERGY)
+
+                    if(creep.pos.inRangeTo(energyCont, 1))
+                    {
+                        // console.log("withdrawing form container takes " + (Game.cpu.getUsed() - startCPU) + " cpu time")
+                        creep.withdraw(energyCont, RESOURCE_ENERGY)
+                    }
+                    else
+                    {
+                        creep.travelTo(energyCont)
+                        // console.log("traveling to container takes " + (Game.cpu.getUsed() - startCPU) + " cpu time")
+                    }
                 }
                 else
                 {
-                    creep.moveTo(energyCont)
+                    // console.log("Creep: " + creep.id + " is failing to find a container")
                 }
+
                 // if(creep.withdraw(energyCont, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                 //     creep.moveTo(energyCont)
                 // }
@@ -159,6 +177,7 @@ var roleUpgrader = {
             }
             // console.log("Getting energy is using " + (Game.cpu.getUsed() - startCPU) + " cpu time")
         }
+        // console.log()
     }
 };
 

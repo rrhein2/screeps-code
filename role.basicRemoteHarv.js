@@ -8,6 +8,15 @@ var basicRemoteHarv = {
 			if(creep.ticksToLive < 90 && creep.memory.inQueue == false)
 			{
                 creep.memory.inQueue = true;
+                if(Game.rooms[creep.memory.home].memory.remHarv == undefined || Game.rooms[creep.memory.home].memory.remHarv == null)
+                {
+                    Game.rooms[creep.memory.home].memory.remHarv = {}
+                }
+                if(Game.rooms[creep.memory.home].memory.remHarv[creep.memory.harvestRoom] == undefined || Game.rooms[creep.memory.home].memory.remHarv[creep.memory.harvestRoom] == null)
+                {
+                    Game.rooms[creep.memory.home].memory.remHarv[creep.memory.harvestRoom] = 0
+                }
+                Game.rooms[creep.memory.home].memory.remHarv[creep.memory.harvestRoom] = (creep.memory.transfers / creep.memory.spawnCost)
 				Game.rooms[creep.memory.home].memory.spawnQueue += ("RH"+creep.memory.harvestRoom+",");
 			}
 		}
@@ -86,9 +95,20 @@ var basicRemoteHarv = {
                 // Perform action on your target
             	if(!creep.memory.isCont) {
                     targetObj = Game.getObjectById(creep.memory.target)
-                	if(creep.transfer(targetObj, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    	creep.travelTo(targetObj);
-                	}
+                    if(creep.pos.inRangeTo(targetObj, 1))
+                    {
+                        if(creep.transfer(targetObj, RESOURCE_ENERGY) == 0)
+                        {
+                            creep.memory.transfers += creep.store.getCapacity()
+                        }
+                    }
+                    else
+                    {
+                        creep.travelTo(targetObj)
+                    }
+                	// if(creep.transfer(targetObj, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                 //    	creep.travelTo(targetObj);
+                	// }
              	}
                 // If there is nothing else available, upgrade controller
                 else

@@ -2,7 +2,6 @@ var roleBuilder = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-
     	if(Game.time%30 == 0)
 		{
 			if(creep.ticksToLive < 90 && creep.memory.inQueue == false)
@@ -10,6 +9,17 @@ var roleBuilder = {
                 creep.memory.inQueue = true;
 				Game.rooms[creep.memory.home].memory.spawnQueue += ("BU,");
 			}
+            if(creep.ticksToLive < 10 && creep.memory.energyTallied == false)
+            {
+                // console.log("Ran energy average")
+                // var prevAverage = Memory.energyEffeciency[creep.memory.role]
+                // var count = Memory.energyEffeciency.counts[creep.memory.role]
+                // var energyUsed = creep.memory.netEnergy
+
+                // Memory.energyEffeciency[creep.memory.role] = prevAverage + ((energyUsed - prevAverage) / (count + 1))
+                // Memory.energyEffeciency.counts[creep.memory.role] = count + 1
+                creep.addEnergyAverage()
+            }
 		}
 
         if((creep.memory.building && creep.carry.energy == 0) || creep.memory.building == undefined) {
@@ -35,8 +45,10 @@ var roleBuilder = {
             {
                 if(creep.room.memory.repairQueue.length > 0)
                 {
-                    target = creep.room.memory.repairQueue.substring(0, queue.indexOf(','))
+                    var queue = creep.room.memory.repairQueue
+                    target = queue.substring(0, queue.indexOf(','))
                     creep.memory.mode = "r"
+                    creep.room.memory.repairQueue = queue.substring(queue.indexOf(',')+1);
                 }
                 else
                 {
@@ -198,14 +210,30 @@ var roleBuilder = {
             if(energyStoresInRoom == null || energyStoresInRoom == undefined)
             {
                 var sources = creep.pos.findClosestByRange(FIND_SOURCES);
-                if(creep.harvest(sources) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(sources, {visualizePathStyle: {stroke: '#ffaa00'}});
+                if(creep.pos.inRangeTo(sources, 1))
+                {
+                    // var initial = creep.store.getUsedCapacity(RESOURCE_ENERGY)
+                    creep.harvest(sources)
+                    // creep.memory.netEnergy += creep.store.getUsedCapacity(RESOURCE_ENERGY) - initial
                 }
+                else
+                {
+                    creep.moveTo(sources)
+                }
+                // if(creep.harvest(sources) == ERR_NOT_IN_RANGE) {
+                //     creep.moveTo(sources, {visualizePathStyle: {stroke: '#ffaa00'}});
+                // }
             }
             // this else is if there are energy stores in the room, then use them
             else
             {
-                if(creep.withdraw(energyCont, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                if(creep.pos.inRangeTo(energyCont, 1))
+                {
+                    creep.withdraw(energyCont, RESOURCE_ENERGY)
+                    // Using getCapacity because getUsedCapacity doesn't update until the next tick
+                    creep.memory.netEnergy -= creep.store.getCapacity(RESOURCE_ENERGY)
+                }
+                else{
                     creep.moveTo(energyCont)
                 }
             }

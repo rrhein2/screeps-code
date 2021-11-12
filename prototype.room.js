@@ -1,10 +1,97 @@
-Room.prototype.resetCreepCPUStats =
+// Administrative function used for finding how many of each creep are in a room
+Room.prototype.pollRoom = 
 	function()
 	{
-		for(var val in this.memory.cpuUsage.creeps)
+		var creepDict = {}
+		for(var creep of this.find(FIND_MY_CREEPS))
 		{
-			console.log(val)
+			if(creep.ticksTolive < 90)
+			{
+				continue
+			}
+			if(!(creep.memory.role in creepDict))
+			{
+				creepDict[creep.memory.role] = 1
+			}
+			else
+			{
+				creepDict[creep.memory.role]++
+			}
 		}
+
+		for(var entry of Object.keys(creepDict))
+		{
+			console.log(entry + ": " + creepDict[entry])
+		}
+	}
+
+Room.prototype.scoreRoom = 
+	function()
+	{
+		if(Memory.rooms[this.name].idealCenter.x == null || Memory.rooms[this.name].idealCenter.x == undefined)
+		{
+			// console.log("No room here")
+			Memory.rooms[this.name].colonizationScore = -9999
+			return
+		}
+		var x = Memory.rooms[this.name].idealCenter.x
+		var y = Memory.rooms[this.name].idealCenter.y
+
+		var terrain = new Room.Terrain(this.name).getRawBuffer()
+		var swampScore = 0
+		var wallScore = 0
+		var sourceScore = 0
+		var statusScore = (Memory.rooms[this.name].status == "empty" ? 1 : -1)
+		var mineralScore = 0
+		var controllerScore = (50 - this.controller.pos.getRangeTo(x, y)) / 50
+		var overallScore = 0
+
+		// Calculate swampScores and wall Scores
+		for(var i of terrain)
+		{
+			if(i == TERRAIN_MASK_SWAMP)
+			{
+				swampScore++
+			}
+			else if(i == TERRAIN_MASK_WALL)
+			{
+				wallScore++
+			}
+		}
+		swampScore /= 2500
+		wallScore /= 2500
+
+		// Calculate sourceScore
+		if(Memory.rooms[this.name].sources)
+		{
+			for(var src of Object.keys(Memory.rooms[this.name].sources))
+			{
+				var source = Game.getObjectById(src)
+				sourceScore += (50 - source.pos.getRangeTo(x, y))
+				// console.log(source.pos.getRangeTo(x, y))
+			}
+			sourceScore /= 100
+		}
+
+		// Calculate mineral score
+		if(Memory.rooms[this.name].minerals)
+		{
+			for(var min of Object.keys(Memory.rooms[this.name].minerals))
+			{
+				mineralScore += (Memory.rooms[this.name].minerals[min].mineralScore) / 200
+			}
+		}
+
+		// console.log("Swamp: " + (2*(1 - swampScore)))
+		// console.log("Wall: " + (2*(1 - wallScore)))
+		// console.log("Sources: " + (4*(sourceScore)))
+		// console.log("Controller: " + 2 * controllerScore)
+		// console.log("Mineral: " + mineralScore)
+		overallScore = statusScore * ((1.5*(1 - swampScore)) + (1.5*(1 - wallScore)) + (4*sourceScore) + (2*controllerScore) + mineralScore)
+		// console.log(overallScore)
+
+		Memory.rooms[this.name].colonizationScore = overallScore
+
 	}
 
 Room.prototype.findCenter =
@@ -255,6 +342,9 @@ Room.prototype.explore =
 			Memory.rooms[this.name].status = "mine";
 			Memory.rooms[this.name].searchTime = -1;
 		}
+
+
+		// Generate a colonization score for the room based off of collected data
 	};
 
 Room.prototype.update = 
@@ -307,6 +397,7 @@ Room.prototype.update =
 				var keys = Object.keys(level)
 				for(var j = 0; j < keys.length; j++)
 				{
+					console.log(keys[j])
 					if(keys[j] == 'extension')
 					{
 						for(var k = 1; k <= Object.keys(level['extension']).length; k++)
@@ -330,6 +421,7 @@ Room.prototype.update =
 					}
 					else if(keys[j] == 'road')
 					{
+						console.log('in roads')
 						for(var k = 1; k <= Object.keys(level['road']).length; k++)
 						{
 							this.createConstructionSite(center.pos.x + level['road'][k]["x"], center.pos.y + level['road'][k]['y'], STRUCTURE_ROAD)
@@ -342,6 +434,8 @@ Room.prototype.update =
 							this.memory.spawnQueue += level['creeps'][k]
 						}
 					}
+
+
 					// else if(keys[j] == 'road')
 					// {
 					// 	for(var k = 1; k <= Object.keys(level['road']).length; k++)

@@ -1,11 +1,48 @@
+var calculateCost =
+	function(parts)
+	{
+		var BODYPART_COST = { "move": 50, "work": 100, "attack": 80, "carry": 50, "heal": 250, "ranged_attack": 150, "tough": 10, "claim": 600 }
+		var cost = 0
+		for(var part of parts)
+		{
+			cost += BODYPART_COST[part]
+		}
+		return cost
+	}
+
+var spawnACreep =
+	function(spawner, queue, next, body, name, memory, sendToBack = false)
+	{
+		memory.memory.energyTallied = false
+		memory.memory.netEnergy = 0 - calculateCost(body)
+		if(spawner.spawnCreep(body, name, memory) == 0)
+        {
+        	// If the creep is baseManager, put it in the front of the myCreeps queue so that it runs before other creeps
+            if(memory.memory.role == "baseManager")
+            {
+            	Memory.myCreeps = (name + ",") + Memory.myCreeps
+            }
+            // Else just throw it in, I can add more order later on if I really want to or need to
+            else
+            {
+            	Memory.myCreeps += name + ","
+            }
+
+            // if it was spawned, remove from queue
+            spawner.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
+            fail = false
+        }
+        else if(sendToBack)
+        {
+        	// IF the stationary harvester fails to spawn, send him to the end of the queue
+        	spawner.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1) + next + ","
+        }	
+	}
+
+
 StructureSpawn.prototype.spawner =
 	function()
 	{
-		if(this.room.name == 'E1S8')
-		{
-			return
-		}
-
 		var fail = true
 
 		if(this.room.memory.spawnQueue == "" && this.room.find(FIND_MY_CREEPS).length > 0)
@@ -151,12 +188,20 @@ StructureSpawn.prototype.spawner =
 	        	// 	this.room.memory.spawnQueue = temp + next + ","
 	        	// 	return
 	        	// }
-	            if(this.spawnCreep(body, "stHarv"+Game.time, {memory:{role:'stHarv', srcID:next.substring(2), home:this.room.name, inQueue:false}}) == 0)
-	            {
-	                // if it was spawned, remove from queue
-	                this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
-	                fail = false
-	            }
+	        	const name = "stHarv" + Game.time
+	        	spawnACreep(this, queue, next, body, name, {memory:{role:'stHarv', srcID:next.substring(2), home:this.room.name, inQueue:false}}, true)
+	            // if(this.spawnCreep(body, name, {memory:{role:'stHarv', srcID:next.substring(2), home:this.room.name, inQueue:false}}) == 0)
+	            // {
+	            //     // if it was spawned, remove from queue
+	            //     Memory.myCreeps
+	            //     this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
+	            //     fail = false
+	            // }
+	            // else
+	            // {
+	            // 	// IF the stationary harvester fails to spawn, send him to the end of the queue
+	            // 	this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1) + next + ","
+	            // }
 	        }
 	        else if(next.substring(0, 2) == 'FE')
 	        {
@@ -173,12 +218,14 @@ StructureSpawn.prototype.spawner =
 	        			body.push(CARRY);
 	        		}
 	        	}
-	            if(this.spawnCreep(body, "ferry"+Game.time, {memory:{role:'ferry', contID:next.substring(2), home:this.room.name, inQueue:false}}) == 0)
-	            {
-	                // if it was spawned, remove from queue
-	                this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
-	                fail = false
-	            }
+
+	        	spawnACreep(this, queue, next, body, "ferry"+Game.time, {memory:{role:'ferry', contID:next.substring(2), home:this.room.name, inQueue:false}})
+	            // if(this.spawnCreep(body, "ferry"+Game.time, {memory:{role:'ferry', contID:next.substring(2), home:this.room.name, inQueue:false}}) == 0)
+	            // {
+	            //     // if it was spawned, remove from queue
+	            //     this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
+	            //     fail = false
+	            // }
 	        }
 	        // Spawn Harvester Mark 0
 	        else if(next.substring(0,  2) == "HA")
@@ -231,11 +278,13 @@ StructureSpawn.prototype.spawner =
 		        			body.push(CARRY);
 		        		}
 		        	}
-		        	if(this.spawnCreep(body, "Harv_Mk.0-"+Game.time, {memory:{role:'harvester', home:this.room.name, inQueue:false}}) == 0)
-		        	{
-		        		this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
-		        		fail = false
-		        	}
+
+		        	spawnACreep(this, queue, next, body, "Harv_Mk.0-"+Game.time, {memory:{role:'harvester', home:this.room.name, inQueue:false}})
+		        	// if(this.spawnCreep(body, "Harv_Mk.0-"+Game.time, {memory:{role:'harvester', home:this.room.name, inQueue:false}}) == 0)
+		        	// {
+		        	// 	this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
+		        	// 	fail = false
+		        	// }
 		        // }
 	        }
 	        // Spawn Builder Mark 0
@@ -257,11 +306,13 @@ StructureSpawn.prototype.spawner =
 	        			// body.push([MOVE, WORK, CARRY]);
 	        		}
 	        	}
-	        	if(this.spawnCreep(body, "Build_Mk.0-"+Game.time, {memory:{role:'builder', home:this.room.name, inQueue:false}}) == 0)
-	        	{
-	        		this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
-	        		fail = false
-	        	}
+
+	        	spawnACreep(this, queue, next, body, "Build_Mk.0-"+Game.time, {memory:{role:'builder', home:this.room.name, inQueue:false}})
+	        	// if(this.spawnCreep(body, "Build_Mk.0-"+Game.time, {memory:{role:'builder', home:this.room.name, inQueue:false}}) == 0)
+	        	// {
+	        	// 	this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
+	        	// 	fail = false
+	        	// }
 	        }
 	        else if(next.substring(0, 2) == "WE")
 	        {
@@ -283,11 +334,13 @@ StructureSpawn.prototype.spawner =
 	        			// body.push([MOVE, WORK, CARRY]);
 	        		}
 	        	}
-	        	if(this.spawnCreep(body, "WallE-"+Game.time, {memory:{role:'wallE', home:this.room.name, inQueue:false, hitsPercent:repairPerc, onlyRamparts:next.substring(2)}}) == 0)
-	        	{
-	        		this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
-	        		fail = false
-	        	}
+
+	        	spawnACreep(this, queue, next, body, "WallE-"+Game.time, {memory:{role:'wallE', home:this.room.name, inQueue:false, hitsPercent:repairPerc, onlyRamparts:next.substring(2)}})
+	        	// if(this.spawnCreep(body, "WallE-"+Game.time, {memory:{role:'wallE', home:this.room.name, inQueue:false, hitsPercent:repairPerc, onlyRamparts:next.substring(2)}}) == 0)
+	        	// {
+	        	// 	this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
+	        	// 	fail = false
+	        	// }
 	        }
 	        // Spawn Upgrader Mark 0
 	        else if(next.substring(0, 2) == "UP")
@@ -305,20 +358,23 @@ StructureSpawn.prototype.spawner =
 	        			body.push(CARRY);
 	        		}
 	        	}
-	        	if(this.spawnCreep(body, "Upgr_Mk.0-"+Game.time, {memory:{role:'upgrader', home:this.room.name, inQueue:false}}) == 0)
-	        	{
-	        		this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
-	        		fail = false
-	        	}
+	        	spawnACreep(this, queue, next, body, "Upgr_Mk.0-"+Game.time, {memory:{role:'upgrader', home:this.room.name, inQueue:false}})
+	        	// if(this.spawnCreep(body, "Upgr_Mk.0-"+Game.time, {memory:{role:'upgrader', home:this.room.name, inQueue:false}}) == 0)
+	        	// {
+	        	// 	this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
+	        	// 	fail = false
+	        	// }
 	        }
 	        // Spawn cartographer
 	        else if(next.substring(0, 2) == "CT")
 	        {
-	        	if(this.spawnCreep([MOVE], "Cart-"+Game.time, {memory:{role:'cart', home:this.room.name, inSpawnQueue:false}}) == 0)
-	        	{
-	        		this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
-	        		fail = false
-	        	}
+
+	        	spawnACreep(this, queue, next, [MOVE], "Cart-"+Game.time, {memory:{role:'cart', home:this.room.name, inSpawnQueue:false}})
+	        	// if(this.spawnCreep([MOVE], "Cart-"+Game.time, {memory:{role:'cart', home:this.room.name, inSpawnQueue:false}}) == 0)
+	        	// {
+	        	// 	this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
+	        	// 	fail = false
+	        	// }
 	        }
 	        // Spawn Defender Mark 0
 	        else if(next.substring(0, 2) == "DF")
@@ -337,11 +393,13 @@ StructureSpawn.prototype.spawner =
 	        			body.push(ATTACK);
 	        		}
 	        	}
-	        	if(this.spawnCreep(body, "Prot_Mk.0-"+Game.time, {memory:{role:'prot', selector:-1, home:this.room.name}}) == 0)
-	        	{
-	        		this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
-	        		fail = false
-	        	}
+
+	        	spawnACreep(this, queue, next, body, "Prot_Mk.0-"+Game.time, {memory:{role:'prot', selector:-1, home:this.room.name}})
+	        	// if(this.spawnCreep(body, "Prot_Mk.0-"+Game.time, {memory:{role:'prot', selector:-1, home:this.room.name}}) == 0)
+	        	// {
+	        	// 	this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
+	        	// 	fail = false
+	        	// }
 	        }
 	        else if(next.substring(0,2) == "RO")
 	        {
@@ -359,11 +417,13 @@ StructureSpawn.prototype.spawner =
 	        			body.push(ATTACK);
 	        		}
 	        	}
-	        	if(this.spawnCreep(body, "Rohanian-"+Game.time, {memory:{role:'rohanian', selector:-1, home:next.substring(2), spawner:this.room.name}}) == 0)
-	        	{
-	        		this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
-	        		fail = false
-	        	}
+
+	        	spawnACreep(this, queue, next, body, "Rohanian-"+Game.time, {memory:{role:'rohanian', selector:-1, home:next.substring(2), spawner:this.room.name}})
+	        	// if(this.spawnCreep(body, "Rohanian-"+Game.time, {memory:{role:'rohanian', selector:-1, home:next.substring(2), spawner:this.room.name}}) == 0)
+	        	// {
+	        	// 	this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
+	        	// 	fail = false
+	        	// }
 	        }
 	        else if(next.substring(0, 2) == "RH")
 	        {
@@ -383,11 +443,17 @@ StructureSpawn.prototype.spawner =
 	        			body.push(CARRY);
 	        		}
 	        	}
-	        	if(this.spawnCreep(body, "Rem-Hrv-Bas-"+Game.time, {memory:{role:'basicRemoteHarv', home:this.room.name, inQueue:false, harvestRoom:next.substring(2)}}) == 0)
-	        	{
-	        		this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
-	        		fail = false
-	        	}
+
+	        	spawnACreep(this, queue, next, body, "Rem-Hrv-Bas-"+Game.time, {memory:{role:'basicRemoteHarv', home:this.room.name, inQueue:false, harvestRoom:next.substring(2), transfers:0, spawnCost:calculateCost(body)}})
+	        	// if(this.spawnCreep(body, "Rem-Hrv-Bas-"+Game.time, {memory:{role:'basicRemoteHarv', home:this.room.name, inQueue:false, harvestRoom:next.substring(2), transfers:0, spawnCost:calculateCost(body)}}) == 0)
+	        	// {
+	        	// 	this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
+	        	// 	fail = false
+	        	// }
+	        	// else
+	        	// {
+	        	// 	this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1) + next + ","
+	        	// }
 	        }
 	        else if(next.substring(0, 2) == "CO")
 	        {
@@ -409,11 +475,17 @@ StructureSpawn.prototype.spawner =
 	        			body.push(CARRY);
 	        		}
 	        	}
-	        	if(this.spawnCreep(body, "Colonizer-"+Game.time, {memory:{role:'colonizer', home:this.room.name, inQueue:false, colonyRoom:next.substring(2)}}) == 0)
-	        	{
-	        		this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
-	        		fail = false
-	        	}
+
+	        	spawnACreep(this, queue, next, body, "Colonizer-"+Game.time, {memory:{role:'colonizer', home:this.room.name, inQueue:false, colonyRoom:next.substring(2)}}, true)
+	    //     	if(this.spawnCreep(body, "Colonizer-"+Game.time, {memory:{role:'colonizer', home:this.room.name, inQueue:false, colonyRoom:next.substring(2)}}) == 0)
+	    //     	{
+	    //     		this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1);
+	    //     		fail = false
+	    //     	}
+	    //     	else
+	    //     	{
+					// this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1) + next + ","
+	    //     	}
 	        }
 	        else if(next.substring(0, 2) == "BM")
 	        {
@@ -424,11 +496,52 @@ StructureSpawn.prototype.spawner =
         			body.push(CARRY)
 
         		}
-        		if(this.spawnCreep(body, "BaseManager-"+Game.time, {memory:{role:'baseManager', home:this.room.name, inQueue:false, storID:next.substring(2), target:null}}) == 0)
+
+        		spawnACreep(this, queue, next, body, "BaseManager-"+Game.time, {memory:{role:'baseManager', home:this.room.name, inQueue:false, storID:next.substring(2), target:null}})
+        		// if(this.spawnCreep(body, "BaseManager-"+Game.time, {memory:{role:'baseManager', home:this.room.name, inQueue:false, storID:next.substring(2), target:null}}) == 0)
+        		// {
+        		// 	this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1)
+        		// 	fail = false
+        		// }
+	        }
+	        else if(next.substring(0, 2) == "CL")
+	        {
+	        	if(this.room.energyAvailable >= 1000)
+	        	{
+		        	body.push(MOVE)
+		        	body.push(MOVE)
+		        	body.push(CLAIM)
+
+		        	spawnACreep(this, queue, next, body, "Claimer-"+Game.time, {memory:{role:"claimer", home:this.room.name, inQueue:false, spawnTime:Game.time, colonyRoom:next.substring(2)}}, true)
+		        	// if(this.spawnCreep(body, "Claimer-"+Game.time, {memory:{role:"claimer", home:this.room.name, inQueue:false, spawnTime:Game.time, colonyRoom:next.substring(2)}}) == 0)
+		        	// {
+		        	// 	this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1)
+        			// 	fail = false
+		        	// }
+		        	// else
+		        	// {
+		        	// 	// If it fails, push it to the back of the queue to try again
+		        	// 	this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1) + (next + ",")
+
+		        	// }
+		        }
+	        }
+	        else if(next.substring(0, 2) == "CP")
+	        {
+	        	for(var i = Math.min(Math.floor(this.room.energyAvailable/200), 16); i > 0; i--)
         		{
-        			this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1)
-        			fail = false
+        			body.push(MOVE)
+        			body.push(CARRY)
+        			body.push(CARRY)
+
         		}
+
+        		spawnACreep(this, queue, next, body, "CarePackage-"+Game.time, {memory:{role:'carePackage', home:this.room.name, storID:"", destRoom:next.substring(2)}})
+        		// if(this.spawnCreep(body, "CarePackage-"+Game.time, {memory:{role:'carePackage', home:this.room.name, storID:"", destRoom:next.substring(2)}}) == 0)
+        		// {
+        		// 	this.room.memory.spawnQueue = queue.substring(queue.indexOf(',')+1)
+        		// 	fail = false
+        		// }
 	        }
 	        if(fail)
 	        {

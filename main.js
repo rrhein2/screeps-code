@@ -9,14 +9,121 @@ require('prototype.spawn');
 require('prototype.room');
 require('Traveler')
 
+function runBackupStats()
+{
+    for(var r in Game.rooms)
+    {
+        var poll = {"HA":0, "BU":0, "UP":0, "FE-1":0,  "SH-1":0, "DF":0, "WE":0, "BM":0};
+        rm = Game.rooms[r]
+        var c = rm.find(FIND_MY_CREEPS);
+        if(c.length > 4)
+        {
+            for(var i = 0; i < c.length; i++)
+            {
+                if(c[i].memory.role == "harvester")
+                {
+                    poll["HA"]++
+                }
+                else if(c[i].memory.role == "builder")
+                {
+                    poll["BU"]++
+                }
+                else if(c[i].memory.role == "upgrader")
+                {
+                    poll["UP"]++
+                }
+                else if(c[i].memory.role == "ferry")
+                {
+                    poll["FE-1"]++
+                }
+                else if(c[i].memory.role == "stHarv")
+                {
+                    poll["SH-1"]++
+                }
+                else if(c[i].memory.role == "prot")
+                {
+                    poll["DF"]++
+                }
+                else if(c[i].memory.role == "wallE")
+                {
+                    poll["WE"]++
+                }
+                else if(c[i].memory.role == "baseManager")
+                {
+                    poll['BM']++
+                }
+            }
+            rm.memory.backup = poll;
+        }
+        else
+        {
+            rm.memory.recentlyAttacked = true
+        }
+    }
+}
 
-module.exports.loop = function () {
-    for(var i in Memory.creeps) {
-        if(!Game.creeps[i]) {
-            delete Memory.creeps[i];
+function roomDist(roomName1, roomName2, diagonal){
+    if( roomName1 == roomName2 ) return 0;
+    let posA = roomName1.split(/([N,E,S,W])/);
+    let posB = roomName2.split(/([N,E,S,W])/);
+    let xDif = posA[1] == posB[1] ? Math.abs(parseInt(posA[2], 10)-parseInt(posB[2], 10)) : parseInt(posA[2], 10)+parseInt(posB[2], 10)+1;
+    let yDif = posA[3] == posB[3] ? Math.abs(parseInt(posA[4], 10)-parseInt(posB[4],10)) : parseInt(posA[4], 10)+parseInt(posB[4], 10)+1;
+    if( diagonal ) return Math.max(xDif, yDif); // count diagonal as 1 
+    return xDif + yDif; // count diagonal as 2 
+}
+
+function switchCard(card)
+{
+    if(card == "N") return "S"
+    if(card == "S") return "N"
+    if(card == "W") return "E"
+    if(card == "E") return "W"
+}
+
+function roomsInRange(roomName, range, pastZero = true)
+{
+    let pos = roomName.split(/([N,E,S,W])/)
+    let xLoc = parseInt(pos[2], 10)
+    let yLoc = parseInt(pos[4], 10)
+    var roomList = []
+    for(var i = xLoc - range; i <= xLoc + range; i++)
+    {
+        if(i < 0)
+        {
+            if(pastZero) roomName2 = (switchCard(pos[1]) + Math.abs(i))
+            else continue
+        }
+        else if(i > Game.map.getWorldSize() - 2) continue
+        else
+        {
+            roomName2 = pos[1] + Math.abs(i)
+        }
+
+        for(var j = yLoc - range; j <= yLoc + range; j++)
+        {
+            roomName2 = roomName2.substring(0, 2)
+            if(j < 0)
+            {
+                if(pastZero) roomName2 += (switchCard(pos[3]) + Math.abs(j))
+                else continue
+            }
+            else if(j > Game.map.getWorldSize() - 2) continue
+            else
+            {
+                roomName2 += pos[3] + Math.abs(j)
+            }
+            if(roomDist(roomName, roomName2) <= range)
+            {
+                roomList.push(roomName2)
+            }
         }
     }
 
+    return roomList
+}
+
+function runTowers()
+{
     var towers = _.filter(Game.structures, s => s.structureType == STRUCTURE_TOWER);
     for(let tower of towers)
     {
@@ -29,66 +136,254 @@ module.exports.loop = function () {
             console.log('tower: ' + tower.room.name + '; ' + tower.pos.x + ', ' + tower.pos.y + ' errored: '  + error);
         }
     }
+}
+
+function runRoomUpdates(room)
+{
+    try
+    {
+        if(room.memory.level == undefined)
+        {
+            room.memory.level = -1
+        }
+        if(room.controller.level  > room.memory.level)
+        {
+            room.memory.level = room.controller.level
+            room.update()
+        }
+    }
+    catch
+    {
+        console.log(room.name + " is throwing undefined level")
+    }
+}
+
+function removeHarvesters(room)
+{
+    try
+    {
+        var harvesters = room.find(FIND_MY_CREEPS, {
+            filter: (crp) => {
+                return (crp.memory.role == "stHarv")
+            }
+        })
+        var sources = room.find(FIND_SOURCES)
+        // There are enough stHarvs to match the sources, get rid of the normal harvesters
+        if(harvesters.length == sources.length)
+        {
+            var harvs = room.find(FIND_MY_CREEPS, {
+                filter: (crp) => {
+                    return (crp.memory.role == "harvester")
+                }
+            })
+            for(var harv of harvs)
+            {
+                harv.suicide()
+            }
+        }
+    }
+    catch
+    {
+        console.log("Error removing the normal harvesters")
+    }
+}
+
+function spawnCartographer(room)
+{
+    try
+    {
+        // This should spawn a cartographer every ~2 hours (7500 ticks) in rooms level 3 and higher
+        if(Game.time % 2500 == 0 && room.memory.level >= 3)
+        {
+            room.memory.spawnQueue += "CT-1,"
+        }
+    }
+    catch 
+    {
+        console.log("FAILED TO SPAWN CARTOGRAPHER IN ROOM " + room.name)
+    }
+}
+
+function bestNearbyRoomForColonization(room, max, bestRoom, spawnRoom)
+{
+    try
+    {
+        var count = 0
+        for(var rm in Game.rooms)
+        {
+            if(Game.rooms[rm].memory.status == "mine") count++
+        }
+
+        if(Game.gcl.level > count && room.controller.level >= 5 && room.energyAvailable > 1000)
+        {
+            var accessible = roomsInRange(rm, 4)
+            if(accessible.length)
+            {
+            }
+            for(var roomName of accessible)
+            {
+                if(Memory.rooms[roomName] == undefined)
+                {
+                    continue
+                }
+                if(Memory.rooms[roomName].status == "mine")
+                {
+                    continue
+                }
+                if(Memory.rooms[roomName])
+                {
+                    if(Memory.rooms[roomName].colonizationScore == undefined)
+                    {
+                    }
+                    var score = Memory.rooms[roomName].colonizationScore
+                    if(score > max)
+                    {
+                        max = score
+                        bestRoom = roomName
+                        spawnRoom = room
+                    }
+                }
+            }
+        }
+        return {"max": max, "bestRoom":bestRoom, "spawnRoom": spawnRoom}
+    }
+    catch
+    {
+        console.log("Error occured trying to calculate the best room to colonize")
+    }
+}
+
+function runRooms()
+{
+    var max = -9999
+    var bestRoom = ""
+    var spawnRoom = ""
+    for(var rm in Game.rooms)
+    {
+        // Run updates on rooms and their levels
+        var room = Game.rooms[rm]
+
+        runRoomUpdates(room)
+
+        removeHarvesters(room)
+
+        spawnCartographer(room)
+
+        returnVal = bestNearbyRoomForColonization(room, max, bestRoom, spawnRoom)
+        max = returnVal["max"]
+        bestRoom = returnVal["bestRoom"]
+        spawnRoom = returnVal["spawnRoom"]
+    }
+
+    // Finalize the spawning of a claimer, if a room was found
+    if(bestRoom != "")
+    {
+        // console.log("Best room is: " + bestRoom)
+        spawnRoom.memory.spawnQueue += "CL" + bestRoom + ","
+    }
+    else
+    {
+        console.log("no best room found")
+    }
+}
+
+function runCreeps()
+{
+    for(var name in Game.creeps)
+    {
+        const startCPU = Game.cpu.getUsed()
+
+        var creep = Game.creeps[name];
+        // if(creep.memory.role == 'cart') {
+        //     cart += 1;
+        // }
+        creep.runRole();
+
+        const used = Game.cpu.getUsed() - startCPU
+        // if(used > 2)
+        // {
+        //     console.log(creep.memory.role + " is using more than 2 CPU")
+        // }
+        const prevAvg = Memory.cpuUsage.creeps[creep.memory.role]
+        const count = Memory.cpuUsage.creeps[creep.memory.role + "Count"]
+
+        Memory.cpuUsage.creeps[creep.memory.role] = prevAvg + ((used - prevAvg) / (count + 1))
+        Memory.cpuUsage.creeps[creep.memory.role + "Count"] = count+1
+    }
+}
+
+function runSpawns(spawnName)
+{
+    const startCPU = Game.cpu.getUsed()
+    var spawn = Game.spawns[spawnName];
+    spawn.spawner();
+    const used = Game.cpu.getUsed() - startCPU
+    if(used > 1.5)
+    {
+        console.log(spawn.room + " has a spawner taking up more than 1.5 cpu")
+    }
+}
+
+function runRoadCalcs()
+{
+    const startCPU = Game.cpu.getUsed()
+    for(var rm in Game.rooms)
+    {
+        var room = Game.rooms[rm]
+        var roads = room.find(FIND_STRUCTURES, {
+            filter: (struct) => {
+                return (struct.structureType == STRUCTURE_ROAD)
+            }
+        })
+        for(rd in roads)
+        {
+            var road = roads[rd]
+            if(road.hits <= road.hitsMax * .7 && !room.memory.repairQueue.includes(road.id))
+            {
+                console.log(road.id)
+                room.memory.repairQueue += road.id + ","
+            }
+        }
+    }
+    const used = Game.cpu.getUsed() - startCPU
+    if(used > 1.5)
+    {
+        console.log("Road calcs are taking more than 1.5 cpu to run")
+    }
+}
 
 
-    // Poll the room to see what creeps are there and then store it in room memory
-    // also see if rcl  has upgraded
+module.exports.loop = function () 
+{
+    if(!Memory.myCreeps)
+    {
+        Memory.myCreeps = ""
+    }
+    for(var i in Memory.creeps) 
+    {
+        if(!Game.creeps[i]) {
+            Memory.myCreeps = Memory.myCreeps.replace(i + ",", "")
+            delete Memory.creeps[i];
+        }
+    }
+
+    for(var i of Memory.myCreeps.split(","))
+    {
+        if(i == "")
+        {
+            continue
+        }
+        if(!Game.creeps[i])
+        {
+            console.log(i)
+        }
+    }
+    // console.log()
+
+    // Run every 300 ticks
     if(Game.time%300 == 0)
     {
-    	for(var r in Game.rooms)
-    	{
-            var poll = {"HA":0, "BU":0, "UP":0, "FE-1":0,  "SH-1":0, "DF":0, "WE":0, "BM":0};
-            rm = Game.rooms[r]
-    		var c = rm.find(FIND_MY_CREEPS);
-    		// if(rm.controller.my && c.length <= 3)
-    		// {
-    		//     rm.memory.spawnQueue = "HA,HA,UP,BU,BM-1,"
-      //           rm.memory.recentlyAttacked = false
-    		// }
-            if(c.length > 4)
-            {
-        		for(var i = 0; i < c.length; i++)
-        		{
-        			if(c[i].memory.role == "harvester")
-        			{
-        				poll["HA"]++
-        			}
-        			else if(c[i].memory.role == "builder")
-        			{
-        				poll["BU"]++
-        			}
-        			else if(c[i].memory.role == "upgrader")
-        			{
-        				poll["UP"]++
-        			}
-        			else if(c[i].memory.role == "ferry")
-        			{
-        				poll["FE-1"]++
-        			}
-        			else if(c[i].memory.role == "stHarv")
-        			{
-        				poll["SH-1"]++
-        			}
-                    else if(c[i].memory.role == "prot")
-                    {
-                        poll["DF"]++
-                    }
-                    else if(c[i].memory.role == "wallE")
-                    {
-                        poll["WE"]++
-                    }
-                    else if(c[i].memory.role == "baseManager")
-                    {
-                        poll['BM']++
-                    }
-        		}
-                rm.memory.backup = poll;
-            }
-            else
-            {
-                rm.memory.recentlyAttacked = true
-            }
-    	}
+    	runBackupStats()
 
         for(var s in Game.spawns)
         {
@@ -97,45 +392,9 @@ module.exports.loop = function () {
             {
                 spwn.room.memory.level = -1
             }
-            // if(spwn.room.controller.level > spwn.room.memory.level)
-            // {
-            //     spwn.room.memory.level = spwn.room.controller.level;
-            //     spwn.room.update();
-            // }
         }
-        for(var rm in Game.rooms)
-        {
-            var room = Game.rooms[rm]
-            try
-            {
-                if(room.memory.level == undefined)
-                {
-                    room.memory.level = -1
-                }
-                if(room.controller.level  > room.memory.level)
-                {
-                    room.memory.level = room.controller.level
-                    room.update()
-                }
-            }
-            catch
-            {
-                console.log(room.name + " is throwing undefined level")
-            }
 
-            try
-            {
-                // This should spawn a cartographer every ~2 hours (7500 ticks) in rooms level 3 and higher
-                if(Game.tiem % 2500 == 0 && room.memory.level >= 3)
-                {
-                    room.memory.spawnQueue += "CT-1,"
-                }
-            }
-            catch 
-            {
-                console.log("FAILED TO SPAWN CARTOGRAPHER IN ROOM " + room.name)
-            }
-        }
+        runRooms()
     }
 
     // Every 20,000 ticks, reset the cpuUsage stats, so that the averages don't become so large that they can't be affected by changes
@@ -147,43 +406,38 @@ module.exports.loop = function () {
         }
     }
 
-
-
   
     var  cart = 0;
 
-    for(var name in Game.creeps) {
-        const startCPU = Game.cpu.getUsed()
 
-        var creep = Game.creeps[name];
-        if(creep.memory.role == 'cart') {
-            cart += 1;
-        }
-        creep.runRole();
+    //====================================
+    //       RUN ROLES EVERY TICK
+    //====================================
+    runTowers()
 
-        const used = Game.cpu.getUsed() - startCPU
-        const prevAvg = Memory.cpuUsage.creeps[creep.memory.role]
-        const count = Memory.cpuUsage.creeps[creep.memory.role + "Count"]
-
-        Memory.cpuUsage.creeps[creep.memory.role] = prevAvg + ((used - prevAvg) / (count + 1))
-        Memory.cpuUsage.creeps[creep.memory.role + "Count"] = count+1
-    }
+    runCreeps()
     
 
     for(var s in Game.spawns)
     {
-    	var spawn = Game.spawns[s];
-    	spawn.spawner();
+        runSpawns(s)
     }
 
-    const st = Game.cpu.getUsed()
-    for (var s in Game.structures)
+
+    //====================================
+    //   RUN ROAD CALS EVEY 5000 TICKS
+    //====================================
+    if(Game.time % 5000 == 0)
     {
-        var structure = Game.structures[s]
-        if(structure.structureType == STRUCTURE_ROAD)
-        {
-            structure.runRole()
-        }
+        runRoadCalcs()
     }
-    console.log(Game.cpu.getUsed())
+    // for (var s in Game.structures)
+    // {
+    //     var structure = Game.structures[s]
+    //     if(structure.structureType == STRUCTURE_ROAD)
+    //     {
+    //         structure.runRole()
+    //     }
+    // }
+    // console.log(Game.cpu.getUsed())
 }

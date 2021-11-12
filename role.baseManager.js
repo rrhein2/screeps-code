@@ -8,7 +8,9 @@ var baseManager = {
 			if(creep.ticksToLive < 90 && creep.memory.inQueue == false)
 			{
 				creep.memory.inQueue = true
-				Game.rooms[creep.memory.home].memory.spawnQueue += ("BM"+creep.memory.storID+",");
+				// I have base managers superseed the other spawns because of how important they are for allowing other creeps to spawn. They need high
+				//   priority in case something happens
+				Game.rooms[creep.memory.home].memory.spawnQueue = ("BM"+creep.memory.storID+",") + Game.rooms[creep.memory.home].memory.spawnQueue;
 			}
 		}
 

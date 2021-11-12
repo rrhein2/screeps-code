@@ -2,6 +2,7 @@ var roleCartographer =
 {
 	run: function(creep)
 	{
+
 		// if(Game.time%30 == 0)
 		// {
 		// 	if(creep.ticksToLive < 90 && !creep.memory.inSpawnQueue)
@@ -31,6 +32,7 @@ var roleCartographer =
 			{
 				creep.room.findCenter();
 			}
+			creep.room.scoreRoom()
 			creep.memory.destination = getDestination(creep);
 			creep.memory.exitCoords = undefined;
 		}
@@ -97,6 +99,10 @@ function getDestination(creep)
 				if(Memory.rooms[exits[exit]].status == 'mine')
 				{
 					tempScore += 0;
+				}
+				else if(Memory.rooms[exits[exit]].status == "explored")
+				{
+					tempScore -= 150
 				}
 				else
 				{

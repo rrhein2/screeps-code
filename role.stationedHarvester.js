@@ -48,7 +48,6 @@ var stationedHarvester = {
 		var source = Game.getObjectById(creep.memory.srcID);
 		
 
-
 		if(creep.memory.working && creep.store.energy == 0)
     	{
     		creep.memory.working = false;
