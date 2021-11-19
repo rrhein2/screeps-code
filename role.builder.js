@@ -9,15 +9,8 @@ var roleBuilder = {
                 creep.memory.inQueue = true;
 				Game.rooms[creep.memory.home].memory.spawnQueue += ("BU,");
 			}
-            if(creep.ticksToLive < 10 && creep.memory.energyTallied == false)
+            if(creep.ticksToLive < 31 && creep.memory.energyTallied == false)
             {
-                // console.log("Ran energy average")
-                // var prevAverage = Memory.energyEffeciency[creep.memory.role]
-                // var count = Memory.energyEffeciency.counts[creep.memory.role]
-                // var energyUsed = creep.memory.netEnergy
-
-                // Memory.energyEffeciency[creep.memory.role] = prevAverage + ((energyUsed - prevAverage) / (count + 1))
-                // Memory.energyEffeciency.counts[creep.memory.role] = count + 1
                 creep.addEnergyAverage()
             }
 		}
@@ -34,6 +27,7 @@ var roleBuilder = {
         }
         if(!creep.memory.building && creep.carry.energy == creep.carryCapacity) {
             creep.memory.building = true;
+            creep.memory.netEnergy -= creep.store.getCapacity(RESOURCE_ENERGY)
             creep.say('🚧 build');
         }
 
@@ -229,9 +223,7 @@ var roleBuilder = {
             {
                 if(creep.pos.inRangeTo(energyCont, 1))
                 {
-                    creep.withdraw(energyCont, RESOURCE_ENERGY)
-                    // Using getCapacity because getUsedCapacity doesn't update until the next tick
-                    creep.memory.netEnergy -= creep.store.getCapacity(RESOURCE_ENERGY)
+                    creep.withdraw(energyCont, RESOURCE_ENERGY) == 0
                 }
                 else{
                     creep.moveTo(energyCont)

@@ -12,6 +12,10 @@ var baseManager = {
 				//   priority in case something happens
 				Game.rooms[creep.memory.home].memory.spawnQueue = ("BM"+creep.memory.storID+",") + Game.rooms[creep.memory.home].memory.spawnQueue;
 			}
+			if(creep.ticksToLive < 31 && creep.memory.energyTallied == false)
+            {
+                creep.addEnergyAverage()
+            }
 		}
 
 

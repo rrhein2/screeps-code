@@ -3,6 +3,7 @@ var roleCartographer =
 	run: function(creep)
 	{
 
+return
 		// if(Game.time%30 == 0)
 		// {
 		// 	if(creep.ticksToLive < 90 && !creep.memory.inSpawnQueue)
@@ -88,6 +89,7 @@ function getDestination(creep)
 		var exits = Game.map.describeExits(creep.room.name);
 		for(exit in exits)
 		{
+
 			// Reset temp score for each room
 			tempScore = 0;
 			if(Memory.rooms[exits[exit]] == undefined)

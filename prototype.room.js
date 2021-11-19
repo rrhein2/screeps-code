@@ -1,10 +1,229 @@
-// Administrative function used for finding how many of each creep are in a room
-Room.prototype.pollRoom = 
+var creepEffeciency= ["baseManager", "stHarv", "ferry", "upgrader", "builder", "basicRemoteHarv"]
+
+var csvToDict =
+	function(csv)
+	{
+		var temp = csv
+		var retDict = {}
+		while(temp.includes(","))
+		{
+			var first = temp.substring(0, temp.indexOf(","))
+			retDict[first.substring(0, 2)] = first.substring(2)
+			temp = temp.substring(temp.indexOf(",")+1)
+		}
+		return retDict
+	}
+
+var dictToCsv =
+	function(dict)
+	{
+		var retList = ""
+		for(var i in dict)
+		{
+			retList += i + dict[i] + ","
+		}
+		return retList
+	}
+
+Room.prototype.setupMemory = 
 	function()
 	{
-		var creepDict = {}
-		for(var creep of this.find(FIND_MY_CREEPS))
+		if(this.memory.sources == undefined)
 		{
+			this.memory.sources = {}
+		}
+		if(this.memory.lastFail == undefined)
+		{
+			this.memory.lastFail = -1
+		}
+		if(this.memory.spawnQueue == undefined)
+		{
+			this.memory.spawnQueue = ""
+		}
+		if(this.memory.recentlyAttacke == undefined)
+		{
+			this.memory.recentlyAttacked = false
+		}
+		if(this.memory.level == undefined)
+		{
+			this.memory.level = 1
+		}
+		if(this.memory.backup == undefined)
+		{
+			this.memory.backup = {}
+		}
+		if(this.memory.status == undefined)
+		{
+			this.memory.status = "mine"
+		}
+		if(this.memory.searchTime == undefined)
+		{
+			this.memory.searchTime = -1
+		}
+		if(this.memory.repairQueue == undefined)
+		{
+			this.memory.repairQueue = ""
+		}
+		if(this.memory.remHarv == undefined)
+		{
+			this.memory.remHarv = {}
+		}
+		if(this.memory.energyEffeciency == undefined)
+		{
+			this.memory.energyEffeciency = {}
+			for(var i of creepEffeciency)
+			{
+				this.memory.energyEffeciency[i] = 0
+			}
+		}
+		if(this.memory.energyEffeciency.counts == undefined)
+		{
+			this.memory.energyEffeciency.counts = {}
+			for(var i of creepEffeciency)
+			{
+				this.memory.energyEffeciency.counts[i] = 0
+			}
+		}
+		if(this.memory.creepMaxes == undefined)
+		{
+			this.memory.creepMaxes = "UP16,BU16,"
+		}
+		if(this.memory.creepMaxCounts == undefined)
+		{
+			this.memory.creepMaxCounts = "UP10,BU10,"
+		}
+		if(this.memory.balanceTracker == undefined)
+		{
+			this.memory.balanceTracker = "UP-1,BU-1,"
+		}
+	}
+
+// Modify this function so that it uses the memory's energyUsage instead of just rotating the string
+//.  also give it ability to increase/decrease the number of those creeps based on energy usage
+Room.prototype.balanceCreepEnergy =
+	function()
+	{
+		if(this.memory.status != "mine")
+		{
+			return
+		}
+
+		var knownMax = {"BU": 16, "UP": 16}
+		var maxCount = this.memory.creepMaxes
+		var trackerDict = csvToDict(this.memory.balanceTracker)
+		var maxCreepCountDict = csvToDict(this.memory.creepMaxCounts)
+
+		var creepID = maxCount.substring(0, 2)
+		var count = parseInt(maxCount.substring(2, maxCount.indexOf(',')))
+		var tracker = trackerDict[creepID]
+		var creepMaxCount = maxCreepCountDict[creepID]
+		// Using 500 as an "acceptable" variance range from 0, will re-evaluate later
+		if(this.netEnergyUsage() < 500)
+		{
+			if(count > 1)
+			{
+				count--
+
+				// If I am currently tracking decreases for this creep, add another to that count
+				if(tracker[0] == "-")
+				{
+					tracker = "-"+(parseInt(tracker[1]) + 1)
+				}
+				// Otherwise, if I was trackign increases, switch it to decreases
+				else
+				{
+					tracker = "-1"
+				}
+			}
+		}
+		else if(this.netEnergyUsage() > 500)
+		{
+			if(count < knownMax[creepID])
+			{
+				count++
+				if(tracker[0] == "+")
+				{
+					tracker = "+"+(parseInt(tracker[1]) + 1)
+				}
+				else
+				{
+					tracker = "+1"
+				}
+			}
+		}
+
+		if(Game.time%1500 == 0)
+		{
+			// If I've reached 5 in either increase or decrease tracker, try to modify the creep count
+			if(parseInt(tracker[1]) >= 5)
+			{
+				// If it has been increasing, add to max count
+				if(tracker[0] == "+")
+				{
+					creepMaxCount = parseInt(creepMaxCount) + 1
+				}
+				// Otherwise decrease it, unless it is 1 in which case leave it
+				else if(creepMaxCount != "1")
+				{
+					creepMaxCount = parseInt(creepMaxCount) - 1
+				}
+			}
+		}
+		// console.log(maxCount.substring(maxCount.indexOf(",")+1) + creepID + count + ",")
+		this.memory.creepMaxes = maxCount.substring(maxCount.indexOf(",")+1) + creepID + count + ","
+
+		trackerDict[creepID] = tracker
+		this.memory.balanceTracker = dictToCsv(trackerDict)
+		maxCreepCountDict[creepID] = creepMaxCount
+		this.memory.creepMaxCounts = dictToCsv(maxCreepCountDict)
+	}
+
+Room.prototype.resetEnergyEffeciency =
+	function()
+	{
+		for(var i of creepEffeciency)
+		{
+			this.memory.energyEffeciency[i] = 0
+		}
+
+		for(var i of creepEffeciency)
+		{
+			this.memory.energyEffeciency.counts[i] = 0
+		}
+	}
+
+Room.prototype.netEnergyUsage =
+	function()
+	{
+		var creeps = this.pollRoom(true)
+		var energyUsage = this.memory.energyEffeciency
+
+		var totalUsed = 0
+		for(var type of Object.keys(creeps))
+		{
+			if(energyUsage[type] != undefined)
+			{
+				totalUsed += energyUsage[type] * creeps[type]
+			}
+		}
+		return totalUsed
+	}
+
+// Administrative function used for finding how many of each creep are in a room
+Room.prototype.pollRoom = 
+	function(shouldReturn = false)
+	{
+		var creepDict = {}
+		for(var crp in Game.creeps)
+		{
+			var creep = Game.creeps[crp]
+			if(creep.memory.home != this.name)
+			{
+				continue
+			}
+		// }
+		// for(var creep of this.find(FIND_MY_CREEPS))
+		// {
 			if(creep.ticksTolive < 90)
 			{
 				continue
@@ -19,9 +238,16 @@ Room.prototype.pollRoom =
 			}
 		}
 
-		for(var entry of Object.keys(creepDict))
+		if(shouldReturn)
 		{
-			console.log(entry + ": " + creepDict[entry])
+			return creepDict
+		}
+		else
+		{
+			for(var entry of Object.keys(creepDict))
+			{
+				console.log(entry + ": " + creepDict[entry])
+			}
 		}
 	}
 

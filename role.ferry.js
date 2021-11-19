@@ -10,6 +10,10 @@ var ferry = {
 				creep.memory.inQueue = true
 				Game.rooms[creep.memory.home].memory.spawnQueue += ("FE"+creep.memory.contID+",");
 			}
+			if(creep.ticksToLive < 31 && creep.memory.energyTallied == false)
+            {
+                creep.addEnergyAverage()
+            }
 		}
 		if(creep.memory.contID == "-1" || creep.memory.contID == undefined)
 		{
@@ -65,14 +69,20 @@ var ferry = {
 		{
 			creep.memory.toCont = false;
 		}
+
 		if(creep.memory.toCont)
 		{
 			// Get energy from container to bring to base
-			if(creep.room.find(FIND_TOMBSTONES, {filter: (tomb) => {return tomb.store.getUsedCapacity() > 0}}).length > 0)
-			{
-				creep.runOtherRole('graverobber')
-			}
-			else if(creep.withdraw(cont, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE)
+			// if(creep.room.find(FIND_TOMBSTONES, {filter: (tomb) => {return tomb.store.getUsedCapacity() > 0}}).length > 0)
+			// {
+			// 	if(creep.id == "618ebb2a5ac273003ea7a4ad")
+			// 	{
+			// 		console.log("inside grave robber")
+			// 	}
+
+			// 	creep.runOtherRole('graverobber')
+			// }
+			if(creep.withdraw(cont, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE)
 			{
 				creep.travelTo(cont)
 			}

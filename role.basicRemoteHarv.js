@@ -1,8 +1,19 @@
+var calculateCost =
+    function(parts)
+    {
+        var BODYPART_COST = { "move": 50, "work": 100, "attack": 80, "carry": 50, "heal": 250, "ranged_attack": 150, "tough": 10, "claim": 600 }
+        var cost = 0
+        for(var part in parts)
+        {
+            cost += BODYPART_COST[parts[part].type]
+        }
+        return cost
+    }
+
 var basicRemoteHarv = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-
     	if(Game.time%30 == 0)
 		{
 			if(creep.ticksToLive < 90 && creep.memory.inQueue == false)
@@ -16,9 +27,25 @@ var basicRemoteHarv = {
                 {
                     Game.rooms[creep.memory.home].memory.remHarv[creep.memory.harvestRoom] = 0
                 }
+                if(creep.memory.spawnCost == 0)
+                {
+                    creep.memory.spawnCost = calculateCost(creep.body)
+                }
+                if(creep.memory.home == "W8N6")
+                {
+                    console.log("Inside rem harv")
+                    console.log(creep.memory.transfers)
+                    console.log(creep.memory.spawnCost)
+                    console.log((creep.memory.transfers / creep.memory.spawnCost))
+                }
                 Game.rooms[creep.memory.home].memory.remHarv[creep.memory.harvestRoom] = (creep.memory.transfers / creep.memory.spawnCost)
 				Game.rooms[creep.memory.home].memory.spawnQueue += ("RH"+creep.memory.harvestRoom+",");
 			}
+
+            if(creep.ticksToLive < 31 && creep.memory.energyTallied == false)
+            {
+                creep.addEnergyAverage()
+            }
 		}
         else if(creep.room.find(FIND_HOSTILE_CREEPS).length >= 1 && creep.memory.inQueue == false)
         {
@@ -100,6 +127,7 @@ var basicRemoteHarv = {
                         if(creep.transfer(targetObj, RESOURCE_ENERGY) == 0)
                         {
                             creep.memory.transfers += creep.store.getCapacity()
+                            creep.memory.netEnergy += creep.store.getCapacity()
                         }
                     }
                     else

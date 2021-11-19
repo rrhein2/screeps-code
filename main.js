@@ -269,6 +269,8 @@ function runRooms()
 
         spawnCartographer(room)
 
+        room.balanceCreepEnergy()
+
         returnVal = bestNearbyRoomForColonization(room, max, bestRoom, spawnRoom)
         max = returnVal["max"]
         bestRoom = returnVal["bestRoom"]
@@ -397,12 +399,20 @@ module.exports.loop = function ()
         runRooms()
     }
 
-    // Every 20,000 ticks, reset the cpuUsage stats, so that the averages don't become so large that they can't be affected by changes
+    // Approx. 13 creep generations
     if(Game.time % 20000 == 0)
     {
+        // Every 20,000 ticks, reset the cpuUsage stats, so that the averages don't become so large that they can't be affected by changes
         for(var val in Memory.cpuUsage.creeps)
         {
             Memory.cpuUsage.creeps[val] = 0
+        }
+
+        // Reset the energyEffeciency stats so that they don't become so large that small changes stop affecting them
+        for(var rm in Game.rooms)
+        {
+            var room = Game.rooms[rm]
+            room.resetEnergyEffeciency()
         }
     }
 

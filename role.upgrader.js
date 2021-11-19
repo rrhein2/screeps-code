@@ -10,6 +10,10 @@ var roleUpgrader = {
                 creep.memory.inQueue = true
 				Game.rooms[creep.memory.home].memory.spawnQueue += ("UP,");
 			}
+            if(creep.ticksToLive < 31 && creep.memory.energyTallied == false)
+            {
+                creep.addEnergyAverage()
+            }
 		}
 
         if(creep.memory.upgrading && creep.carry.energy == 0 || creep.memory.upgrading == undefined) {
@@ -18,6 +22,8 @@ var roleUpgrader = {
         }
         if(!creep.memory.upgrading && creep.carry.energy == creep.carryCapacity) {
             creep.memory.upgrading = true;
+            // this should only allow it to add to capacity once after energy is full
+            creep.memory.netEnergy -= creep.store.getCapacity()
             creep.say('⚡ upgrade');
         }
 
@@ -165,7 +171,7 @@ var roleUpgrader = {
 
                 if(creep.pos.inRangeTo(energyCont, 1))
                 {
-                    creep.withdraw(energyCont, RESOURCE_ENERGY)
+                    creep.withdraw(energyCont, RESOURCE_ENERGY) == 0
                 }
                 else
                 {

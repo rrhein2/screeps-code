@@ -40,9 +40,10 @@ var claimer = {
                 creep.room.createConstructionSite(flagLoc.x, flagLoc.y-1, STRUCTURE_SPAWN, creep.room.name + "-Spawn1")
                 
                 // Set up the room's memory structure
-                creep.room.memory.status = "mine"
-                creep.room.memory.spawnQueue = ""
-                creep.room.memory.repairQueue = ""
+                creep.room.setupMemory()
+                // creep.room.memory.status = "mine"
+                // creep.room.memory.spawnQueue = ""
+                // creep.room.memory.repairQueue = ""
             }
         }
     }

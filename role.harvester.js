@@ -62,10 +62,29 @@ var roleHarvester = {
     	}
     	else
     	{
-			var sources = creep.pos.findClosestByRange(FIND_SOURCES);
-            if(creep.harvest(sources) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(sources, {visualizePathStyle: {stroke: '#ffaa00'}});
+            // I need the filter to prevent THE COUNCIL
+            var source2 = creep.pos.findClosestByRange(FIND_SOURCES)
+            if(creep.id == "6193414ea957320034123ef6")
+            {
+                console.log(source2.id)
+                console.log(source2.room.name)
             }
+			var source = creep.pos.findClosestByRange(FIND_SOURCES, {
+                filter: (src) => {
+                    return (src.room.name == creep.room.name)
+                }
+            });
+            if(creep.pos.inRangeTo(source, 1))
+            {
+                creep.harvest(source)
+            }
+            else
+            {
+                creep.moveTo(source)
+            }
+            // if(creep.harvest(sources) == ERR_NOT_IN_RANGE) {
+            //     creep.moveTo(sources, {visualizePathStyle: {stroke: '#ffaa00'}});
+            // }
     	}
     }
 }

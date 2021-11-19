@@ -9,6 +9,10 @@ var stationedHarvester = {
 				creep.memory.inQueue = true;
 				Game.rooms[creep.memory.home].memory.spawnQueue = ("SH"+creep.memory.srcID+",") + Game.rooms[creep.memory.home].memory.spawnQueue;
 			}
+			if(creep.ticksToLive < 31 && creep.memory.energyTallied == false)
+            {
+                creep.addEnergyAverage()
+            }
 		}
 
 		// If the stationedHarvester does not have a source to go to,
@@ -94,7 +98,10 @@ var stationedHarvester = {
 				{
 					if(creep.pos.x == containers[0].pos.x && creep.pos.y == containers[0].pos.y)
 					{
-						creep.transfer(containers[0], RESOURCE_ENERGY);
+						if(creep.transfer(containers[0], RESOURCE_ENERGY) == 0)
+						{
+							creep.memory.netEnergy += creep.store.getCapacity()
+						}
 					}
 					else
 					{
