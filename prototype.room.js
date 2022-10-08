@@ -251,6 +251,25 @@ Room.prototype.pollRoom =
 		}
 	}
 
+Room.prototype.remoteHarvesterRatings =
+function(shouldReturn = false)
+{
+	for(var rm in this.memory.remHarv)
+	{
+
+	}
+}
+
+Room.prototype.killRoom =
+function()
+{
+	creeps = this.find(FIND_MY_CREEPS)
+	for(creep of creeps)
+	{
+		creep.suicide()
+	}
+}
+
 Room.prototype.scoreRoom = 
 	function()
 	{

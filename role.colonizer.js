@@ -5,11 +5,11 @@ var colonizer = {
 
     	if(Game.time%30 == 0)
 		{
-			if(creep.ticksToLive < 90 && creep.memory.inQueue == false)
-			{
-                creep.memory.inQueue = true;
-				Game.rooms[creep.memory.home].memory.spawnQueue += ("CO"+creep.memory.colonyRoom+",");
-			}
+			// if(creep.ticksToLive < 90 && creep.memory.inQueue == false)
+			// {
+   //              creep.memory.inQueue = true;
+			// 	Game.rooms[creep.memory.home].memory.spawnQueue += ("CO"+creep.memory.colonyRoom+",");
+			// }
 		}
 
         if(creep.room.name == creep.memory.home && creep.store.energy != creep.store.getCapacity())

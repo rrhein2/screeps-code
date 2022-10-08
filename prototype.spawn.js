@@ -229,8 +229,8 @@ var spawnCreep =
 StructureSpawn.prototype.spawner =
 	function()
 	{
-		var fail = true
 
+		var fail = true
 		if(this.room.memory.spawnQueue == "" && this.room.find(FIND_MY_CREEPS).length > 0)
 		{
 			this.room.memory.lastFail = -1
@@ -370,7 +370,15 @@ StructureSpawn.prototype.spawner =
 	        	}
 	        	else if(Game.time - this.room.memory.lastFail >= 800)
 	        	{
-	        		this.room.memory.spawnQueue = "HA,HA," + this.room.memory.spawnQueue
+	        		if(this.room.memory.attemptedFailRecovery == undefined || this.room.memory.attemptedFailRecovery == null)
+	        		{
+	        			this.room.memory.attemptedFailRecovery == 1
+	        		}
+	        		else
+	        		{
+	        			this.room.memory.attemptedFailRecovery++
+	        		}
+	        		// this.room.memory.spawnQueue = "HA,HA," + this.room.memory.spawnQueue
 	        		this.room.memory.lastFail = -1
 	        	}
 	        }

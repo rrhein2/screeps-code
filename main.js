@@ -280,8 +280,8 @@ function runRooms()
     // Finalize the spawning of a claimer, if a room was found
     if(bestRoom != "")
     {
-        // console.log("Best room is: " + bestRoom)
-        spawnRoom.memory.spawnQueue += "CL" + bestRoom + ","
+        console.log("Best room is: " + bestRoom)
+        // spawnRoom.memory.spawnQueue += "CL" + bestRoom + ","
     }
     else
     {
@@ -340,7 +340,7 @@ function runRoadCalcs()
         for(rd in roads)
         {
             var road = roads[rd]
-            if(road.hits <= road.hitsMax * .7 && !room.memory.repairQueue.includes(road.id))
+            if(road.hits <= road.hitsMax * .6 && !room.memory.repairQueue.includes(road.id))
             {
                 console.log(road.id)
                 room.memory.repairQueue += road.id + ","
@@ -377,7 +377,7 @@ module.exports.loop = function ()
         }
         if(!Game.creeps[i])
         {
-            console.log(i)
+            // console.log(i)
         }
     }
     // console.log()
