@@ -17,6 +17,7 @@ var ferry = {
 		}
 		if(creep.memory.contID == "-1" || creep.memory.contID == undefined)
 		{
+			// console.log('here')
 			var stHarv = creep.room.find(FIND_MY_CREEPS, {
 				filter: (harvs) => {
 					return(harvs.memory.role == "stHarv");
@@ -28,23 +29,38 @@ var ferry = {
 				}
 			});
 			var used = false;
+			// console.log(stHarv.length)
 			for(var i = 0;  i < stHarv.length; i++)
 			{
+				// console.log('inside stHarv loop')
 				used = false
 				for(var j = 0; j < ferrys.length; j++)
 				{
+					// console.log('inside ferrys loop')
+					// var temp = stHarv[i].pos.findClosestByRange(FIND_STRUCTURES, {
+					// 	filter: (conts) => {
+					// 		return (conts.structureType == STRUCTURE_CONTAINER);
+					// 	}
+					// })
+					// console.log(temp)
+
+
 					if(ferrys[j].memory.contID == stHarv[i].pos.findClosestByRange(FIND_STRUCTURES, {
 						filter: (conts) => {
 							return (conts.structureType == STRUCTURE_CONTAINER);
 						}
 					}).id)
 					{
+						// console.log('inside ferry if')
 						used = true;
 						break;
 					}
+					// console.log('after ferry if')
 				}
+				// console.log('outside final if')
 				if(!used)
 				{
+					// console.log('using cont: ')
 					creep.memory.contID = stHarv[i].pos.findClosestByRange(FIND_STRUCTURES, {
 						filter: (conts) => {
 							return (conts.structureType == STRUCTURE_CONTAINER);

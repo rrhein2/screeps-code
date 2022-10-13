@@ -9,6 +9,44 @@ require('prototype.spawn');
 require('prototype.room');
 require('Traveler')
 
+function setupCoreMemory()
+{
+    Memory.cpuUsage = {}
+    Memory.cpuUsage.creeps = []
+    Memory.cpuUsage.creeps['harvester'] = 0
+    Memory.cpuUsage.creeps['harvesterCount'] = 0
+    Memory.cpuUsage.creeps['stationedHarvester'] = 0
+    Memory.cpuUsage.creeps['stationedHarvesterCount'] = 0
+    Memory.cpuUsage.creeps['ferry'] = 0
+    Memory.cpuUsage.creeps['ferryCount'] = 0
+    Memory.cpuUsage.creeps['builder'] = 0
+    Memory.cpuUsage.creeps['builderCount'] = 0
+    Memory.cpuUsage.creeps['upgrader'] = 0
+    Memory.cpuUsage.creeps['upgraderCount'] = 0
+    Memory.cpuUsage.creeps['cartographer'] = 0
+    Memory.cpuUsage.creeps['cartographerCount'] = 0
+    Memory.cpuUsage.creeps['defender'] = 0
+    Memory.cpuUsage.creeps['defenderCount'] = 0
+    Memory.cpuUsage.creeps['rohanian'] = 0
+    Memory.cpuUsage.creeps['rohanianCount'] = 0
+    Memory.cpuUsage.creeps['wallE'] = 0
+    Memory.cpuUsage.creeps['wallECount'] = 0
+    Memory.cpuUsage.creeps['basicRemoteHarv'] = 0
+    Memory.cpuUsage.creeps['basicRemoteHarvCount'] = 0
+    Memory.cpuUsage.creeps['colonizer'] = 0
+    Memory.cpuUsage.creeps['colonizerCount'] = 0
+    Memory.cpuUsage.creeps['baseManager'] = 0
+    Memory.cpuUsage.creeps['baseManagerCount'] = 0
+    Memory.cpuUsage.creeps['claimer'] = 0
+    Memory.cpuUsage.creeps['claimerCount'] = 0
+    Memory.cpuUsage.creeps['graverobber'] = 0
+    Memory.cpuUsage.creeps['graverobberCount'] = 0
+    Memory.cpuUsage.creeps['carePackage'] = 0
+    Memory.cpuUsage.creeps['carePackageCount'] = 0
+
+    Memory.coreMemorySetup = true
+}
+
 function runBackupStats()
 {
     for(var r in Game.rooms)
@@ -160,6 +198,7 @@ function runRoomUpdates(room)
 
 function removeHarvesters(room)
 {
+    console.log("inside removeHarvesters")
     try
     {
         var harvesters = room.find(FIND_MY_CREEPS, {
@@ -167,9 +206,17 @@ function removeHarvesters(room)
                 return (crp.memory.role == "stHarv")
             }
         })
+        var conts = room.find(FIND_MY_STRUCTURES, {
+            filter: (struc) => {
+                return (struc.structureType == STRUCTURE_CONTAINER)
+            }
+        })
         var sources = room.find(FIND_SOURCES)
-        // There are enough stHarvs to match the sources, get rid of the normal harvesters
-        if(harvesters.length == sources.length)
+        // There are enough stHarvs to match the sources AND they both have completed containers, get rid of the normal harvesters
+        console.log(harvesters.length)
+        console.log(sources.length)
+        console.log(harvesters.length == sources.length && conts.length == sources.length)
+        if(harvesters.length == sources.length && conts.length == sources.length)
         {
             var harvs = room.find(FIND_MY_CREEPS, {
                 filter: (crp) => {
@@ -296,9 +343,6 @@ function runCreeps()
         const startCPU = Game.cpu.getUsed()
 
         var creep = Game.creeps[name];
-        // if(creep.memory.role == 'cart') {
-        //     cart += 1;
-        // }
         creep.runRole();
 
         const used = Game.cpu.getUsed() - startCPU
@@ -318,7 +362,19 @@ function runSpawns(spawnName)
 {
     const startCPU = Game.cpu.getUsed()
     var spawn = Game.spawns[spawnName];
-    spawn.spawner();
+    try
+    {
+        spawn.spawner();
+    }
+    catch
+    {
+        console.log('here')
+        if(Memory.rooms[spawn.room.name].memoryHasSetup == undefined)
+        {
+            spawn.room.setupMemory()
+            Memory.rooms[spawn.room.name].memoryHasSetup = 1
+        }
+    }
     const used = Game.cpu.getUsed() - startCPU
     if(used > 1.5)
     {
@@ -357,6 +413,11 @@ function runRoadCalcs()
 
 module.exports.loop = function () 
 {
+    if(Memory.coreMemorySetup == undefined)
+    {
+        setupCoreMemory()
+    }
+
     if(!Memory.myCreeps)
     {
         Memory.myCreeps = ""
@@ -432,6 +493,8 @@ module.exports.loop = function ()
     {
         runSpawns(s)
     }
+
+    
 
 
     //====================================

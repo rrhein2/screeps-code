@@ -23,11 +23,6 @@ Creep.prototype.addEnergyAverage =
 		try
 		{
 			var room = this.memory.role == "basicRemoteHarv" ? this.memory.home : this.room.name
-			if(this.room.name == "W8N3")
-			{
-				console.log("Ran energy average")
-				console.log(this.memory.role)
-			}
 			if(Memory.rooms[room].energyEffeciency[this.memory.role] == undefined)
 			{
 				Memory.rooms[room].energyEffeciency[this.memory.role] = 0

@@ -2,7 +2,6 @@ var roleUpgrader = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-
     	if(Game.time%30 == 0)
 		{
 			if(creep.ticksToLive < 90 && creep.memory.inQueue == false)
@@ -15,6 +14,7 @@ var roleUpgrader = {
                 creep.addEnergyAverage()
             }
 		}
+        var homeRoom = Game.rooms[creep.memory.home]
 
         if(creep.memory.upgrading && creep.carry.energy == 0 || creep.memory.upgrading == undefined) {
             creep.memory.upgrading = false;
@@ -29,16 +29,16 @@ var roleUpgrader = {
 
         if(creep.memory.upgrading) {
             const startCPU = Game.cpu.getUsed()
-            if(creep.pos.inRangeTo(creep.room.controller, 3))
+            if(creep.pos.inRangeTo(homeRoom.controller, 3))
             {
                 // console.log("running upgrade")
-                creep.upgradeController(creep.room.controller)
+                creep.upgradeController(homeRoom.controller)
                 // console.log("Upgrading command using " + (Game.cpu.getUsed() - startCPU) + " cpu time")
             }
             else
             {
                 // console.log("pathing")
-                creep.travelTo(creep.room.controller);
+                creep.travelTo(homeRoom.controller);
                 // console.log("Upgrading branch traveler using " + (Game.cpu.getUsed() - startCPU) + " cpu time")
             }
             // if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {

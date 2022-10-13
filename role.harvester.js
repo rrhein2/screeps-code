@@ -2,7 +2,6 @@ var roleHarvester = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-
     	if(Game.time%30 == 0)
 		{
 			if(creep.ticksToLive < 90 && creep.memory.inQueue == false)
@@ -12,7 +11,6 @@ var roleHarvester = {
 			}
 		}
 
-        //console.log(!creep.memory.working + " and " + (creep.store.energy == creep.store.getCapacity()));
     	if(creep.memory.working && creep.store.energy == 0)
     	{
     		creep.memory.working = false;
@@ -64,14 +62,9 @@ var roleHarvester = {
     	{
             // I need the filter to prevent THE COUNCIL
             var source2 = creep.pos.findClosestByRange(FIND_SOURCES)
-            if(creep.id == "6193414ea957320034123ef6")
-            {
-                console.log(source2.id)
-                console.log(source2.room.name)
-            }
 			var source = creep.pos.findClosestByRange(FIND_SOURCES, {
                 filter: (src) => {
-                    return (src.room.name == creep.room.name)
+                    return (src.room.name == creep.memory.home)
                 }
             });
             if(creep.pos.inRangeTo(source, 1))
@@ -80,7 +73,8 @@ var roleHarvester = {
             }
             else
             {
-                creep.moveTo(source)
+                creep.travelTo(source)
+                // creep.moveTo(source, {visualizePathStyle: {stroke: '#ffffff'}})
             }
             // if(creep.harvest(sources) == ERR_NOT_IN_RANGE) {
             //     creep.moveTo(sources, {visualizePathStyle: {stroke: '#ffaa00'}});
@@ -88,69 +82,5 @@ var roleHarvester = {
     	}
     }
 }
-
-
-
-
-
-
-
-
-
-
-/*
-        if(creep.carry.energy < creep.carryCapacity && !creep.memory.full) {
-            var sources = creep.pos.findClosestByRange(FIND_SOURCES);
-            //console.log(sources);
-            //var sources = creep.room.find(FIND_SOURCES);
-            if(creep.harvest(sources) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(sources, {visualizePathStyle: {stroke: '#ffaa00'}});
-            }
-            if(creep.carry.energy == creep.carryCapacity)
-            {
-                creep.memory.full = true;
-            }
-        }
-        else {
-            var targets = creep.room.find(FIND_STRUCTURES, {
-                filter: (structure) => {
-                    return (structure.structureType == STRUCTURE_EXTENSION ||
-                        structure.structureType == STRUCTURE_SPAWN ||
-                        structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
-                }
-            });
-            if(targets.length > 0) {
-                if(creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
-                }
-                if(creep.carry.energy == 0)
-                {
-                    creep.memory.full = false;
-                }
-            }
-            // Temporary code to convert to construction worker until I figure out a better way
-            else// if(targets = creep.room.find(FIND_CONSTRUCTION_SITES) && targets.length)
-            {
-                var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
-                if(targets.length) {
-                    if(creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
-                    }
-                }
-                else
-                {
-                    if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
-                    }
-                }
-                if(creep.carry.energy == 0)
-                {
-                    creep.memory.full = false;
-                }
-            }
-        }
-    }
-};
-*/
 
 module.exports = roleHarvester;

@@ -28,6 +28,7 @@ var dictToCsv =
 Room.prototype.setupMemory = 
 	function()
 	{
+		console.log("IN HERE")
 		if(this.memory.sources == undefined)
 		{
 			this.memory.sources = {}
@@ -595,6 +596,7 @@ Room.prototype.explore =
 Room.prototype.update = 
 	function()
 	{
+		console.log("inside room update function")
 		// Increase in extensions
 		var ext = 0
 		var tow = 0

@@ -203,7 +203,14 @@ var roleBuilder = {
             });
             if(energyStoresInRoom == null || energyStoresInRoom == undefined)
             {
-                var sources = creep.pos.findClosestByRange(FIND_SOURCES);
+                var sources = creep.pos.findClosestByRange(FIND_SOURCES, {
+                    filter: (source) => {
+                        if(source.room.name == creep.memory.home)
+                        {
+                            return source
+                        }
+                    }
+                });
                 if(creep.pos.inRangeTo(sources, 1))
                 {
                     // var initial = creep.store.getUsedCapacity(RESOURCE_ENERGY)
