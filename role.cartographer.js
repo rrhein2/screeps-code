@@ -2,8 +2,6 @@ var roleCartographer =
 {
 	run: function(creep)
 	{
-
-return
 		// if(Game.time%30 == 0)
 		// {
 		// 	if(creep.ticksToLive < 90 && !creep.memory.inSpawnQueue)
@@ -17,7 +15,6 @@ return
 		// 	Game.rooms[creep.memory.home].memory.spawnQueue += ("CT,");
 		// 	creep.memory.inSpawnQueue = true;
 		// }
-
 		var start = Game.cpu.getUsed()
 		// If I don't have a destination room, or I am in it, then generate a new one
 		if(creep.memory.destination == undefined)

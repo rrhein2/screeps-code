@@ -28,7 +28,6 @@ var dictToCsv =
 Room.prototype.setupMemory = 
 	function()
 	{
-		console.log("IN HERE")
 		if(this.memory.sources == undefined)
 		{
 			this.memory.sources = {}
@@ -274,6 +273,11 @@ function()
 Room.prototype.scoreRoom = 
 	function()
 	{
+		if(this.controlelr == undefined)
+		{
+			Memory.rooms[this.name].colonizationScore =  -999
+			return
+		}
 		if(Memory.rooms[this.name].idealCenter.x == null || Memory.rooms[this.name].idealCenter.x == undefined)
 		{
 			// console.log("No room here")
@@ -596,7 +600,6 @@ Room.prototype.explore =
 Room.prototype.update = 
 	function()
 	{
-		console.log("inside room update function")
 		// Increase in extensions
 		var ext = 0
 		var tow = 0
@@ -639,12 +642,16 @@ Room.prototype.update =
 		else
 		{
 			var level = levels[this.memory.level]
-			for(var i = 0; i < Object.keys(level).length; i++)
+			console.log(this.memory.level)
+			if(this.memory.level == 4)
 			{
+				Game.notify("Room: " + this.name + " has been upgradded to level 4 and has storage now. Check for base manager")
+			}
+			// for(var i = 0; i < Object.keys(level).length; i++)
+			// {
 				var keys = Object.keys(level)
 				for(var j = 0; j < keys.length; j++)
 				{
-					console.log(keys[j])
 					if(keys[j] == 'extension')
 					{
 						for(var k = 1; k <= Object.keys(level['extension']).length; k++)
@@ -668,7 +675,6 @@ Room.prototype.update =
 					}
 					else if(keys[j] == 'road')
 					{
-						console.log('in roads')
 						for(var k = 1; k <= Object.keys(level['road']).length; k++)
 						{
 							this.createConstructionSite(center.pos.x + level['road'][k]["x"], center.pos.y + level['road'][k]['y'], STRUCTURE_ROAD)
@@ -676,7 +682,7 @@ Room.prototype.update =
 					}
 					else if(keys[j] == 'creeps')
 					{
-						for(var k = 1; k < Object.keys(level['creeps']).length; k++)
+						for(var k = 1; k <= Object.keys(level['creeps']).length; k++)
 						{
 							this.memory.spawnQueue += level['creeps'][k]
 						}
@@ -691,7 +697,7 @@ Room.prototype.update =
 					// 	}
 					// }
 				}
-			}
+			//}
 		}
 	}
 const levels = {

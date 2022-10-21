@@ -1,4 +1,9 @@
 var ferry = {
+
+	// TODO
+	// if creep has energy but there's nowhere for it to go it remains idle (even if it is only partly full) - try to find a way to make it go fill back up if it is idle
+	//   for too long
+
 	run: function(creep)
 	{
 		// Every 50 ticks check to see if the creep will die soon
@@ -72,10 +77,7 @@ var ferry = {
 		}
 
 		var cont = Game.getObjectById(creep.memory.contID);
-		// if(creep.name == "ferry7777")
-		// {
-		// 	console.log(creep.memory.toCont)
-		// }
+
 		if(!creep.memory.toCont  && creep.store.getUsedCapacity() == 0)
 		{
 			creep.memory.toCont = true;

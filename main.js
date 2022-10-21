@@ -198,7 +198,6 @@ function runRoomUpdates(room)
 
 function removeHarvesters(room)
 {
-    console.log("inside removeHarvesters")
     try
     {
         var harvesters = room.find(FIND_MY_CREEPS, {
@@ -206,17 +205,14 @@ function removeHarvesters(room)
                 return (crp.memory.role == "stHarv")
             }
         })
-        var conts = room.find(FIND_MY_STRUCTURES, {
+        var conts = room.find(FIND_STRUCTURES, {
             filter: (struc) => {
                 return (struc.structureType == STRUCTURE_CONTAINER)
             }
         })
         var sources = room.find(FIND_SOURCES)
         // There are enough stHarvs to match the sources AND they both have completed containers, get rid of the normal harvesters
-        console.log(harvesters.length)
-        console.log(sources.length)
-        console.log(harvesters.length == sources.length && conts.length == sources.length)
-        if(harvesters.length == sources.length && conts.length == sources.length)
+        if(harvesters.length >= sources.length && conts.length >= sources.length)
         {
             var harvs = room.find(FIND_MY_CREEPS, {
                 filter: (crp) => {
@@ -368,7 +364,6 @@ function runSpawns(spawnName)
     }
     catch
     {
-        console.log('here')
         if(Memory.rooms[spawn.room.name].memoryHasSetup == undefined)
         {
             spawn.room.setupMemory()
@@ -398,7 +393,6 @@ function runRoadCalcs()
             var road = roads[rd]
             if(road.hits <= road.hitsMax * .6 && !room.memory.repairQueue.includes(road.id))
             {
-                console.log(road.id)
                 room.memory.repairQueue += road.id + ","
             }
         }

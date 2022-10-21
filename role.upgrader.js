@@ -31,20 +31,12 @@ var roleUpgrader = {
             const startCPU = Game.cpu.getUsed()
             if(creep.pos.inRangeTo(homeRoom.controller, 3))
             {
-                // console.log("running upgrade")
                 creep.upgradeController(homeRoom.controller)
-                // console.log("Upgrading command using " + (Game.cpu.getUsed() - startCPU) + " cpu time")
             }
             else
             {
-                // console.log("pathing")
                 creep.travelTo(homeRoom.controller);
-                // console.log("Upgrading branch traveler using " + (Game.cpu.getUsed() - startCPU) + " cpu time")
             }
-            // if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-            //     creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
-            // }
-            // console.log("Upgrading branch using " + (Game.cpu.getUsed() - startCPU) + " cpu time")
         }
         else {
             var startCPU = Game.cpu.getUsed()

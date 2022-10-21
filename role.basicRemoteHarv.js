@@ -31,13 +31,6 @@ var basicRemoteHarv = {
                 {
                     creep.memory.spawnCost = calculateCost(creep.body)
                 }
-                if(creep.memory.home == "W8N6")
-                {
-                    console.log("Inside rem harv")
-                    console.log(creep.memory.transfers)
-                    console.log(creep.memory.spawnCost)
-                    console.log((creep.memory.transfers / creep.memory.spawnCost))
-                }
                 Game.rooms[creep.memory.home].memory.remHarv[creep.memory.harvestRoom] = (creep.memory.transfers / creep.memory.spawnCost)
 				Game.rooms[creep.memory.home].memory.spawnQueue += ("RH"+creep.memory.harvestRoom+",");
 			}

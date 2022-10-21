@@ -26,6 +26,11 @@ var baseManager = {
 					return (struct.structureType == STRUCTURE_STORAGE)
 				}
 			})
+			if(stor[0] == undefined)
+			{
+				// This means the room does not yet have a storage, return so it doesn't error out
+				return
+			}
 			creep.memory.storID = stor[0].id
 		}
 

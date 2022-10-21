@@ -76,7 +76,7 @@ var creepBuilds = function(spawn, next)
 						maxThreshold: 300,
 						maxBody: [TOUGH, MOVE, MOVE, ATTACK],
 						maxCount: 12,
-						memorySetup: {memory:{role:'rohanian', selector:-1, home:next.substring(2), spawner:spawn.room.name}},
+						memorySetup: {memory:{role:'rohanian', selector:-1, defendRoom:next.substring(2), home:spawn.room.name, inQueue:false}},
 						name: "Rohanian_Mk-",
 						sendToBack: false
 					},
@@ -157,6 +157,7 @@ var spawnACreep =
 		memory.memory.netEnergy = 0 - calculateCost(body)
 		if(spawner.spawnCreep(body, name, memory) == 0)
         {
+
         	// If the creep is baseManager, put it in the front of the myCreeps queue so that it runs before other creeps
             if(memory.memory.role == "baseManager")
             {

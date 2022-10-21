@@ -2,22 +2,26 @@ var defender = {
 	run: function(creep)
 	{
 
+		// General Respawn Code
 		if(Game.time%30 == 0)
 		{
 			if(creep.ticksToLive < 90 && !creep.memory.inQueue)
 			{
-				Game.rooms[creep.memory.spawner].memory.spawnQueue += "RO"+creep.memory.home+",";
+				Game.rooms[creep.memory.home].memory.spawnQueue += "RO"+creep.memory.defendRoom+",";
 				creep.memory.inQueue = true;
 			}
 		}
-		if(creep.hits < creep.hitsMax &&  !creep.memory.inQueue)
+		// If creep is damaged, queue it for respawn
+		if(creep.hits < creep.hitsMax && !creep.memory.inQueue)
 		{
-			Game.rooms[creep.memory.home].memory.spawnQueue += (creep.memory.mark+"");
+			Game.rooms[creep.memory.home].memory.spawnQueue += (creep.memory.defendRoom+",");
 			creep.memory.inQueue = true;
 		}
-		if(creep.room.name == creep.memory.home)
+
+		// If Rohanian is in the room it should be defending, start defense code
+		if(creep.room.name == creep.memory.defendRoom)
 		{
-			// If creep is on edges
+			// If creep is on edges, move clsoer to the center (helps prevent mapping/movement errors)
 			if(creep.pos.x == 0)
 			{
 				creep.move(RIGHT)
@@ -35,6 +39,7 @@ var defender = {
 				creep.move(TOP)
 			}
 
+			// If no patrol points have been generated, generate them
 			if(creep.memory.selector == -1)
 			{
 				creep.memory.patrolPoints = [];
@@ -118,6 +123,10 @@ var defender = {
 
 				creep.memory.selector = 0;
 			}
+			// TODO
+			// find better CPU saver than only targeting something new every 150 ticks
+			// TODO 
+			// probably need target persistance as well, this might try and constantly retarget new targets during combat
 			if(Game.time % 150 == 0 || creep.memory.target == undefined)
 			{
 				// If there are enemy creeps, then defend the room
@@ -181,55 +190,10 @@ var defender = {
 					creep.travelTo(targ)
 				}
 			}
-			// if(enemies != null && enemies.length > 0)
-			// {
-			// 	if(creep.attack(enemies) == ERR_NOT_IN_RANGE)
-			// 	{
-			// 		creep.travelTo(enemies);
-			// 	}
-			// }
-			// else if(enemieSpawns != null && enemieSpawns.length > 0)
-			// {
-			// 	if(creep.attack(enemieSpawns) == ERR_NOT_IN_RANGE)
-			// 	{
-			// 		creep.travelTo(enemieSpawns);
-			// 	}
-			// }
-			// else if(enemieStructs != null && enemieStructs.length > 0)
-			// {
-			// 	console.log(enemieStructs)
-			// 	if(creep.attack(enemieStructs) == ERR_NOT_IN_RANGE)
-			// 	{
-			// 		creep.travelTo(enemieStructs);
-			// 	}
-			// }
-			// If there are no enemy creeps, patrol
-			// else
-			// {
-			// 	var curX = creep.memory.patrolPoints[creep.memory.selector].x;
-			// 	var curY = creep.memory.patrolPoints[creep.memory.selector].y;
-			// 	// If the defender is at the next patrol point, change the patrol point
-			// 	if(creep.pos.x == curX && creep.pos.y == curY)
-			// 	{
-			// 		if(creep.memory.selector+1 == creep.memory.patrolPoints.length)
-			// 		{
-			// 			creep.memory.selector = 0;
-			// 		}
-			// 		else
-			// 		{
-			// 			creep.memory.selector++;
-			// 		}
-			// 	}
-			// 	// Otherwise, continue moving to the next patrol point
-			// 	else
-			// 	{
-			// 		creep.travelTo(new RoomPosition(curX, curY, creep.memory.home));
-			// 	}
-			// }
 		}
 		else
 		{
-			creep.travelTo(new RoomPosition(25,25, creep.memory.home));
+			creep.travelTo(new RoomPosition(25,25, creep.memory.defendRoom));
 		}
 	}
 };
